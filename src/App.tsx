@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "./i18n";
 import { createInitialState, playMove, resetGame } from "./game/logic";
 import type { TimerConfig, LifeConfig } from "./game/logic";
 import type { AbilitiesConfig, AbilityId, ShuffleConfig } from "./game/abilities";
@@ -103,6 +104,7 @@ function AppLocal({ onExit }: { onExit: () => void }) {
 // como "el mismo componente con menos Hooks esta vez".
 
 function AppOnline({ onExit, initialAction }: { onExit: () => void; initialAction: PendingAction }) {
+  const { t } = useI18n();
   const multiplayer = useMultiplayer();
   const { phase, createRoom, joinRoom } = multiplayer;
   const firedInitialAction = useRef(false);
@@ -127,7 +129,7 @@ function AppOnline({ onExit, initialAction }: { onExit: () => void; initialActio
 
   return (
     <div style={{ width: "100vw", height: "100vh", background: "#14161e", position: "relative" }}>
-      {phase.kind === "connecting" && <div style={connectingStyle}>Conectando al servidor...</div>}
+      {phase.kind === "connecting" && <div style={connectingStyle}>{t("Conectando al servidor...")}</div>}
       {phase.kind === "error" && (
         <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
           <Lobby
@@ -156,12 +158,14 @@ function AppInRoom({
   multiplayer: ReturnType<typeof useMultiplayer>;
   onExit: () => void;
 }) {
-  const { playMove, resetGame, leaveRoom, endGame, setLocked, useAbility, sendChat, chatMessages, lastNotice, lastEffects } =
+  const { playMove, resetGame, leaveRoom, endGame, setLocked, useAbility, sendChat, reportMessage, chatMessages, lastNotice, lastEffects } =
     multiplayer;
   const { state, playerId, roomCode } = phase;
+  const { t } = useI18n();
 
   const lastDistortionRef = useRef<number | null>(null);
   const [pickingCellFor, setPickingCellFor] = useState<AbilityId | null>(null);
+  const [pickingCellPrimary, setPickingCellPrimary] = useState<number | undefined>(undefined); // Postcognición: jugador copiado mientras se elige la casilla
   const [distortionForShake, setDistortionForShake] = useState<number | null>(null);
   const shakeOffset = useScreenShake(distortionForShake);
 
@@ -208,9 +212,15 @@ function AppInRoom({
       // de red inútil), y si es válida, la enviamos como objetivo de la habilidad
       // en vez de como una jugada normal.
       if (isValidCellTarget(state.game, playerId, index)) {
-        useAbility(pickingCellFor, undefined, index);
+        if (pickingCellFor === "postcognicion") {
+          // La casilla es el objetivo SECUNDARIO de la habilidad copiada (ej. Malversión de Fondos).
+          useAbility("postcognicion", pickingCellPrimary, undefined, undefined, index);
+        } else {
+          useAbility(pickingCellFor, undefined, index);
+        }
       }
       setPickingCellFor(null);
+      setPickingCellPrimary(undefined);
       return;
     }
     // Bloqueo también en el cliente: si no es mi turno (o estoy eliminado), ni se
@@ -263,8 +273,26 @@ function AppInRoom({
           abilitiesConfig={state.abilitiesConfig}
           players={state.game.players}
           onUseAbility={useAbility}
-          onEnterCellTargetMode={setPickingCellFor}
-          onCancelCellTargetMode={() => setPickingCellFor(null)}
+          onUseAbilityExtras={(ability, targetPlayerId, extras) =>
+            useAbility(ability, targetPlayerId, undefined, undefined, undefined, extras)
+          }
+          papaCaliente={state.papaCaliente}
+          acelerador={state.acelerador}
+          globalTurnIndex={state.globalTurnIndex}
+          onEnterCellTargetMode={(ability, primaryTargetPlayerId) => {
+            setPickingCellFor(ability);
+            setPickingCellPrimary(primaryTargetPlayerId);
+          }}
+          onCancelCellTargetMode={() => {
+            setPickingCellFor(null);
+            setPickingCellPrimary(undefined);
+          }}
+          allAssigned={state.assignedAbilities}
+          onUsePostcognicion={(targetPlayerId, secondary) =>
+            useAbility("postcognicion", targetPlayerId, undefined, secondary.playerId, undefined, {
+              stepsBack: secondary.stepsBack,
+            })
+          }
           cellTargetModeActive={pickingCellFor}
           shuffle={state.shuffle}
           noConsumeUsesRemaining={state.noConsumeUsesRemaining}
@@ -274,11 +302,17 @@ function AppInRoom({
       {lastEffects && lastEffects.length > 0 && (
         <div style={effectNoticeStyle}>
           {lastEffects.map((e, i) => (
-            <div key={i}>{e.kind === "screen_distort" ? "🎨 ¡Te tiraron un Globo de Pintura! Tu pantalla se ve rara este turno." : "Se aplicó un efecto."}</div>
+            <div key={i}>{e.kind === "screen_distort" ? t("🎨 ¡Te tiraron un Globo de Pintura! Tu pantalla se ve rara este turno.") : t("Se aplicó un efecto.")}</div>
           ))}
         </div>
       )}
-      <ChatPanel messages={chatMessages} players={state.game.players} myPlayerId={playerId} onSendChat={sendChat} />
+      <ChatPanel
+        messages={chatMessages}
+        players={state.game.players}
+        myPlayerId={playerId}
+        onSendChat={sendChat}
+        onReportMessage={reportMessage}
+      />
     </div>
   );
 }

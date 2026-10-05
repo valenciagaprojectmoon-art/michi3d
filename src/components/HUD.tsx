@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useI18n } from "../i18n";
 import type { GameState, Player } from "../game/logic";
 
 interface HUDProps {
@@ -36,6 +37,7 @@ export function HUD({
   onEndGame,
   onToggleLocked,
 }: HUDProps) {
+  const { t, tx } = useI18n();
   const { players, currentPlayerIndex, status, timerConfig, currentLife, maxLife } = game;
   const currentPlayer = players[currentPlayerIndex];
   const isMyTurn = myPlayerId !== undefined && currentPlayer?.id === myPlayerId;
@@ -61,25 +63,25 @@ export function HUD({
         <div style={styles.topRightGroup}>
           {roomCode && (
             <div style={styles.roomCodeBadge}>
-              Sala <strong>{roomCode}</strong>
+              {t("Sala")} <strong>{roomCode}</strong>
             </div>
           )}
           <button style={styles.resetButton} onClick={onReset}>
-            Reiniciar
+            {t("Reiniciar")}
           </button>
           {isHost && onToggleLocked && (
             <button style={styles.hostButton} onClick={() => onToggleLocked(!locked)}>
-              {locked ? "🔒 Cerrada" : "🔓 Abierta"}
+              {locked ? t("🔒 Cerrada") : t("🔓 Abierta")}
             </button>
           )}
           {isHost && onEndGame && status.kind === "playing" && (
             <button style={styles.endButton} onClick={onEndGame}>
-              Terminar
+              {t("Terminar")}
             </button>
           )}
           {onLeave && (
             <button style={styles.leaveButton} onClick={onLeave}>
-              Salir
+              {t("Salir")}
             </button>
           )}
         </div>
@@ -92,15 +94,15 @@ export function HUD({
               <span style={{ ...styles.swatch, backgroundColor: currentPlayer.color }} />
               {myPlayerId !== undefined ? (
                 isMyTurn ? (
-                  <strong>Es tu turno</strong>
+                  <strong>{t("Es tu turno")}</strong>
                 ) : (
                   <>
-                    Turno de <strong>{currentPlayer.name}</strong>
+                    {tx("Turno de {name}", { name: <strong>{currentPlayer.name}</strong> })}
                   </>
                 )
               ) : (
                 <>
-                  Turno de <strong>{currentPlayer.name}</strong>
+                  {tx("Turno de {name}", { name: <strong>{currentPlayer.name}</strong> })}
                 </>
               )}
             </div>
@@ -120,7 +122,7 @@ export function HUD({
                 backgroundColor: players.find((p) => p.id === status.playerId)?.color,
               }}
             />
-            ¡Ganó <strong>{players.find((p) => p.id === status.playerId)?.name}</strong>! 🎉
+            {tx("¡Ganó {name}! 🎉", { name: <strong>{players.find((p) => p.id === status.playerId)?.name}</strong> })}
           </div>
         )}
 
@@ -132,21 +134,20 @@ export function HUD({
                 backgroundColor: players.find((p) => p.id === status.playerId)?.color,
               }}
             />
-            ¡Ganó <strong>{players.find((p) => p.id === status.playerId)?.name}</strong> — los demás quedaron
-            eliminados 💔
+            {tx("¡Ganó {name} — los demás quedaron eliminados 💔", { name: <strong>{players.find((p) => p.id === status.playerId)?.name}</strong> })}
           </div>
         )}
 
-        {status.kind === "draw" && <div style={styles.turnIndicator}>Empate — el tablero se llenó 🤝</div>}
+        {status.kind === "draw" && <div style={styles.turnIndicator}>{t("Empate — el tablero se llenó 🤝")}</div>}
 
         {status.kind === "ended_by_host" && (
-          <div style={styles.turnIndicator}>El creador de la sala terminó la partida ⏹</div>
+          <div style={styles.turnIndicator}>{t("El creador de la sala terminó la partida ⏹")}</div>
         )}
 
         <LifeBars players={players} currentLife={currentLife} maxLife={maxLife} />
       </div>
 
-      <div style={styles.hint}>Arrastra para rotar la cámara · Clic en una casilla para jugar</div>
+      <div style={styles.hint}>{t("Arrastra para rotar la cámara · Clic en una casilla para jugar")}</div>
     </div>
   );
 }

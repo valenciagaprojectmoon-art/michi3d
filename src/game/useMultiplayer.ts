@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { translate, useI18n } from "../i18n";
 import type { ClientMessage, ServerMessage, PublicRoomState, ChatMessage } from "./protocol";
+import { TERMS_VERSION } from "./protocol";
 import type { TimerConfig, LifeConfig } from "./logic";
 import type { AbilitiesConfig, AbilityId, ActiveEffect, ShuffleConfig } from "./abilities";
 
@@ -20,6 +22,12 @@ interface CreateRoomOptions {
   shuffleConfig: ShuffleConfig | null;
 }
 
+/** Parámetros extra de habilidades que no encajan en los objetivos de jugador/casilla. */
+export interface AbilityExtras {
+  stepsBack?: number; // Brújula Mal Imantada
+  papaCalienteAction?: "activate" | "pass"; // Papa Caliente
+}
+
 interface UseMultiplayerResult {
   phase: ConnectionPhase;
   createRoom: (playerName: string, options: CreateRoomOptions) => void;
@@ -29,8 +37,16 @@ interface UseMultiplayerResult {
   leaveRoom: () => void;
   endGame: () => void;
   setLocked: (locked: boolean) => void;
-  useAbility: (ability: AbilityId, targetPlayerId?: number, targetCellIndex?: number) => void;
+  useAbility: (
+    ability: AbilityId,
+    targetPlayerId?: number,
+    targetCellIndex?: number,
+    secondaryTargetPlayerId?: number,
+    secondaryTargetCellIndex?: number,
+    extras?: AbilityExtras
+  ) => void;
   sendChat: (text: string) => void;
+  reportMessage: (message: ChatMessage, reason: string) => void;
   chatMessages: ChatMessage[]; // historial completo de chat de la sala actual
   lastNotice: string | null; // avisos efímeros: "X se desconectó", etc.
   lastEffects: ActiveEffect[] | null; // efectos que te acaban de aplicar a TI (ej. pantalla desorientada)
@@ -47,6 +63,11 @@ function getServerUrl(): string {
 }
 
 export function useMultiplayer(): UseMultiplayerResult {
+  const { lang } = useI18n();
+  // Los manejadores del socket se crean una sola vez; la ref les da siempre el idioma actual.
+  const langRef = useRef(lang);
+  langRef.current = lang;
+  const tr = (key: string, params?: Record<string, string | number>) => translate(langRef.current, key, params);
   const [phase, setPhase] = useState<ConnectionPhase>({ kind: "lobby" });
   const [lastNotice, setLastNotice] = useState<string | null>(null);
   const [lastEffects, setLastEffects] = useState<ActiveEffect[] | null>(null);
@@ -91,16 +112,19 @@ export function useMultiplayer(): UseMultiplayerResult {
           );
           break;
         case "player_disconnected":
-          setLastNotice(`${msg.playerName} se desconectó.`);
+          setLastNotice(tr("{name} se desconectó.", { name: msg.playerName }));
           break;
         case "player_reconnected":
-          setLastNotice(`${msg.playerName} volvió a conectarse.`);
+          setLastNotice(tr("{name} volvió a conectarse.", { name: msg.playerName }));
           break;
         case "effects_applied":
           setLastEffects(msg.effects);
           break;
         case "chat_message":
           setChatMessages((prev) => [...prev, msg.message]);
+          break;
+        case "report_received":
+          setLastNotice(tr("Reporte enviado. Un moderador lo revisará."));
           break;
         case "error":
           // Si ya estamos dentro de una sala, un error (ej. "No es tu turno",
@@ -121,13 +145,21 @@ export function useMultiplayer(): UseMultiplayerResult {
     };
 
     ws.onerror = () => {
-      setPhase({ kind: "error", message: "No se pudo conectar al servidor. Verifica la dirección o tu conexión." });
+      setPhase({ kind: "error", message: tr("No se pudo conectar al servidor. Verifica la dirección o tu conexión.") });
     };
 
-    ws.onclose = () => {
+    ws.onclose = (event) => {
       // Solo mostramos error si el cierre no fue provocado por un `leaveRoom` intencional
       // (en ese caso ya volvimos a 'lobby' antes de cerrar; ver leaveRoom más abajo).
       wsRef.current = null;
+      // Cierres por límites del servidor (ver ratelimit.ts): se explican en vez de fallar en silencio.
+      const reasons: Record<number, string> = {
+        1008: tr("Te desconectamos por enviar demasiadas peticiones. Espera un par de minutos antes de volver a entrar."),
+        1013: tr("El servidor tiene demasiadas conexiones desde tu red ahora mismo. Inténtalo de nuevo en un momento."),
+        1009: tr("Se envió un mensaje demasiado grande y se cerró la conexión."),
+      };
+      const message = reasons[event.code];
+      if (message) setPhase({ kind: "error", message });
     };
   }, []);
 
@@ -140,6 +172,9 @@ export function useMultiplayer(): UseMultiplayerResult {
         lifeConfig: options.lifeConfig,
         abilitiesConfig: options.abilitiesConfig,
         shuffleConfig: options.shuffleConfig,
+        // El Lobby solo permite llamar aquí si el jugador marcó la casilla de aceptación.
+        acceptedTerms: TERMS_VERSION,
+        lang: langRef.current,
       });
     },
     [connect]
@@ -147,7 +182,7 @@ export function useMultiplayer(): UseMultiplayerResult {
 
   const joinRoom = useCallback(
     (roomCode: string, playerName: string) => {
-      connect({ type: "join_room", roomCode: roomCode.toUpperCase(), playerName });
+      connect({ type: "join_room", roomCode: roomCode.toUpperCase(), playerName, acceptedTerms: TERMS_VERSION, lang: langRef.current });
     },
     [connect]
   );
@@ -158,16 +193,42 @@ export function useMultiplayer(): UseMultiplayerResult {
     }
   }, []);
 
+  // Si el jugador cambia de idioma con la sala abierta, el servidor debe enterarse para traducir sus avisos.
+  useEffect(() => {
+    send({ type: "set_language", lang });
+  }, [lang, send]);
+
   const playMove = useCallback((index: number) => send({ type: "play_move", index }), [send]);
   const resetGame = useCallback(() => send({ type: "reset_game" }), [send]);
   const endGame = useCallback(() => send({ type: "end_game" }), [send]);
   const setLocked = useCallback((locked: boolean) => send({ type: "set_locked", locked }), [send]);
   const useAbility = useCallback(
-    (ability: AbilityId, targetPlayerId?: number, targetCellIndex?: number) =>
-      send({ type: "use_ability", ability, targetPlayerId, targetCellIndex }),
+    (
+      ability: AbilityId,
+      targetPlayerId?: number,
+      targetCellIndex?: number,
+      secondaryTargetPlayerId?: number,
+      secondaryTargetCellIndex?: number,
+      extras?: AbilityExtras
+    ) =>
+      send({
+        type: "use_ability",
+        ability,
+        targetPlayerId,
+        targetCellIndex,
+        secondaryTargetPlayerId,
+        secondaryTargetCellIndex,
+        stepsBack: extras?.stepsBack,
+        papaCalienteAction: extras?.papaCalienteAction,
+      }),
     [send]
   );
   const sendChat = useCallback((text: string) => send({ type: "send_chat", text }), [send]);
+  const reportMessage = useCallback(
+    (message: ChatMessage, reason: string) =>
+      send({ type: "report_message", reportedPlayerId: message.playerId, messageSentAt: message.sentAt, reason }),
+    [send]
+  );
 
   const leaveRoom = useCallback(() => {
     send({ type: "leave_room" });
@@ -194,6 +255,7 @@ export function useMultiplayer(): UseMultiplayerResult {
     setLocked,
     useAbility,
     sendChat,
+    reportMessage,
     chatMessages,
     lastNotice,
     lastEffects,

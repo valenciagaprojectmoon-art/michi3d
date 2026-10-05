@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useI18n, legalHref } from "../i18n";
 import type { ChangeEvent } from "react";
 import type { TimerConfig, TimeoutAction, LifeConfig } from "../game/logic";
 import type { AbilitiesConfig, AbilityId, ShuffleConfig } from "../game/abilities";
@@ -23,8 +24,7 @@ type LobbyMode = "choose" | "configure" | "join";
 
 /**
  * Habilidades ya conectadas al servidor y disponibles para elegir en el lobby.
- * Papa Caliente, Postcognición, Acelerador de Partículas y Brújula Mal Imantada
- * llegan en una tanda posterior — no aparecen aquí todavía.
+ * Con Acelerador de Partículas el catálogo completo está disponible.
  */
 const AVAILABLE_ABILITIES: AbilityId[] = [
   "chicharron",
@@ -33,6 +33,10 @@ const AVAILABLE_ABILITIES: AbilityId[] = [
   "globo_pintura",
   "reloj_roto",
   "malversion_fondos",
+  "postcognicion",
+  "brujula_mal_imantada",
+  "papa_caliente",
+  "acelerador_particulas",
 ];
 
 const ABILITY_LABELS: Record<AbilityId, string> = {
@@ -49,6 +53,7 @@ const ABILITY_LABELS: Record<AbilityId, string> = {
 };
 
 export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, connecting }: LobbyProps) {
+  const { t, tx, lang } = useI18n();
   const [name, setName] = useState("");
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [mode, setMode] = useState<LobbyMode>("choose");
@@ -68,6 +73,16 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
   const [goyslopCuracion, setGoyslopCuracion] = useState(4);
   const [goyslopPerdidaMaxima, setGoyslopPerdidaMaxima] = useState(2);
   const [globoDivergencia, setGloboDivergencia] = useState(5);
+  const [acceptedTerms, setAcceptedTerms] = useState(false); // obligatorio para jugar ONLINE (el modo local no lo necesita)
+  const [brujulaMaxTurnosAtras, setBrujulaMaxTurnosAtras] = useState(2);
+  const [papaTurnosParaPasar, setPapaTurnosParaPasar] = useState(2);
+  const [papaSegundosParaJugar, setPapaSegundosParaJugar] = useState(30);
+  const [papaDanoExplosion, setPapaDanoExplosion] = useState(3);
+  const [papaTurnosParaRepasar, setPapaTurnosParaRepasar] = useState(1);
+  const [acelTurnoDeAparicion, setAcelTurnoDeAparicion] = useState(20);
+  const [acelSegundosPorDano, setAcelSegundosPorDano] = useState(10);
+  const [acelDanoPorTardanza, setAcelDanoPorTardanza] = useState(1);
+  const [acelJugadoresParaActivar, setAcelJugadoresParaActivar] = useState(2);
 
   // Sistema de Shuffle: mano rotativa de habilidades. Y (el pool) es implícito
   // — es simplemente cuántas habilidades el creador activó arriba.
@@ -76,7 +91,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
   const [noConsumeUsesPerTurn, setNoConsumeUsesPerTurn] = useState(1); // Z
 
   const trimmedName = name.trim();
-  const canSubmit = trimmedName.length > 0 && !connecting;
+  const canSubmit = trimmedName.length > 0 && !connecting && acceptedTerms;
 
   const buildTimerConfig = (): TimerConfig => {
     if (timeMode === "none") return { mode: "none" };
@@ -94,6 +109,22 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
     if (enabledAbilities.has("globo_pintura")) config.globo_pintura = { divergencia: globoDivergencia };
     if (enabledAbilities.has("reloj_roto")) config.reloj_roto = {};
     if (enabledAbilities.has("malversion_fondos")) config.malversion_fondos = {};
+    if (enabledAbilities.has("postcognicion")) config.postcognicion = {};
+    if (enabledAbilities.has("brujula_mal_imantada")) config.brujula_mal_imantada = { maxTurnosAtras: brujulaMaxTurnosAtras };
+    if (enabledAbilities.has("acelerador_particulas"))
+      config.acelerador_particulas = {
+        turnoDeAparicion: acelTurnoDeAparicion,
+        segundosPorDano: acelSegundosPorDano,
+        danoPorTardanza: acelDanoPorTardanza,
+        jugadoresParaActivar: acelJugadoresParaActivar,
+      };
+    if (enabledAbilities.has("papa_caliente"))
+      config.papa_caliente = {
+        turnosParaPasar: papaTurnosParaPasar,
+        segundosParaJugar: papaSegundosParaJugar,
+        danoExplosion: papaDanoExplosion,
+        turnosParaRepasar: papaTurnosParaRepasar,
+      };
     return config;
   };
 
@@ -124,18 +155,44 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
     <div style={styles.overlay}>
       <div style={styles.card}>
         <h1 style={styles.title}>Michi 3D</h1>
-        <p style={styles.subtitle}>Tres en raya en un cubo 3×3×3</p>
+        <p style={styles.subtitle}>{t("Tres en raya en un cubo 3×3×3")}</p>
 
         <label style={styles.label}>
-          Tu nombre
+          {t("Tu nombre")}
           <input
             style={styles.input}
             value={name}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-            placeholder="Ej: Ana"
+            placeholder={t("Ej: Ana")}
             maxLength={20}
             autoFocus
           />
+        </label>
+
+        <label style={styles.termsLabel}>
+          <input
+            type="checkbox"
+            checked={acceptedTerms}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setAcceptedTerms(e.target.checked)}
+            style={styles.termsCheckbox}
+          />
+          <span>
+            {tx(
+              "Tengo al menos 14 años y acepto los {terms} y la {privacy}, incluido el registro del chat de la sala para moderación. (Solo para jugar online.)",
+              {
+                terms: (
+                  <a href={legalHref(lang, "terms")} target="_blank" rel="noreferrer" style={styles.termsLink}>
+                    {t("Términos de Servicio")}
+                  </a>
+                ),
+                privacy: (
+                  <a href={legalHref(lang, "privacy")} target="_blank" rel="noreferrer" style={styles.termsLink}>
+                    {t("Política de Privacidad")}
+                  </a>
+                ),
+              }
+            )}
+          </span>
         </label>
 
         {errorMessage && <div style={styles.error}>{errorMessage}</div>}
@@ -147,26 +204,26 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
               disabled={!canSubmit}
               onClick={() => setMode("configure")}
             >
-              Crear sala nueva
+              {t("Crear sala nueva")}
             </button>
             <button
-              style={{ ...styles.secondaryButton, opacity: trimmedName ? 1 : 0.5 }}
-              disabled={!trimmedName}
+              style={{ ...styles.secondaryButton, opacity: trimmedName && acceptedTerms ? 1 : 0.5 }}
+              disabled={!trimmedName || !acceptedTerms}
               onClick={() => setMode("join")}
             >
-              Unirme con un código
+              {t("Unirme con un código")}
             </button>
             <button style={styles.textButton} onClick={onPlayLocal}>
-              Jugar en este dispositivo (sin internet)
+              {t("Jugar en este dispositivo (sin internet)")}
             </button>
           </div>
         )}
 
         {mode === "configure" && (
           <div style={styles.buttonColumn}>
-            <div style={styles.sectionTitle}>Vida</div>
+            <div style={styles.sectionTitle}>{t("Vida")}</div>
             <label style={styles.label}>
-              Vida inicial de cada jugador
+              {t("Vida inicial de cada jugador")}
               <input
                 style={styles.input}
                 type="number"
@@ -180,23 +237,23 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
               />
             </label>
 
-            <div style={styles.sectionTitle}>Tiempo por turno</div>
+            <div style={styles.sectionTitle}>{t("Tiempo por turno")}</div>
             <label style={styles.label}>
               <select
                 style={styles.input}
                 value={timeMode}
                 onChange={(e: ChangeEvent<HTMLSelectElement>) => setTimeMode(e.target.value as TimerConfig["mode"])}
               >
-                <option value="none">Sin límite</option>
-                <option value="turn">Con límite — pierde el turno</option>
-                <option value="life">Con límite — pierde vida</option>
+                <option value="none">{t("Sin límite")}</option>
+                <option value="turn">{t("Con límite — pierde el turno")}</option>
+                <option value="life">{t("Con límite — pierde vida")}</option>
               </select>
             </label>
 
             {timeMode !== "none" && (
               <>
                 <label style={styles.label}>
-                  Segundos por turno
+                  {t("Segundos por turno")}
                   <input
                     style={styles.input}
                     type="number"
@@ -211,14 +268,14 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                 </label>
 
                 <label style={styles.label}>
-                  Al vencer el tiempo
+                  {t("Al vencer el tiempo")}
                   <select
                     style={styles.input}
                     value={onTimeout}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => setOnTimeout(e.target.value as TimeoutAction)}
                   >
-                    <option value="skip_turn">Se omite el turno</option>
-                    <option value="random_move">Se juega al azar</option>
+                    <option value="skip_turn">{t("Se omite el turno")}</option>
+                    <option value="random_move">{t("Se juega al azar")}</option>
                   </select>
                 </label>
               </>
@@ -226,7 +283,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
 
             {timeMode === "life" && (
               <label style={styles.label}>
-                Daño al vencer el tiempo
+                {t("Daño al vencer el tiempo")}
                 <input
                   style={styles.input}
                   type="number"
@@ -241,7 +298,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
               </label>
             )}
 
-            <div style={styles.sectionTitle}>Habilidades</div>
+            <div style={styles.sectionTitle}>{t("Habilidades")}</div>
             <div style={styles.abilityList}>
               {AVAILABLE_ABILITIES.map((ability) => (
                 <label key={ability} style={styles.abilityCheckboxRow}>
@@ -250,14 +307,14 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                     checked={enabledAbilities.has(ability)}
                     onChange={() => toggleAbility(ability)}
                   />
-                  {ABILITY_LABELS[ability]}
+                  {t(ABILITY_LABELS[ability])}
                 </label>
               ))}
             </div>
 
             {enabledAbilities.has("chicharron") && (
               <label style={styles.label}>
-                Chicharrón — vida que cura
+                {t("Chicharrón — vida que cura")}
                 <input
                   style={styles.input}
                   type="number"
@@ -275,7 +332,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
             {enabledAbilities.has("goyslop") && (
               <>
                 <label style={styles.label}>
-                  Goyslop — vida que cura
+                  {t("Goyslop — vida que cura")}
                   <input
                     style={styles.input}
                     type="number"
@@ -289,7 +346,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                   />
                 </label>
                 <label style={styles.label}>
-                  Goyslop — vida máxima que pierde
+                  {t("Goyslop — vida máxima que pierde")}
                   <input
                     style={styles.input}
                     type="number"
@@ -307,7 +364,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
 
             {enabledAbilities.has("globo_pintura") && (
               <label style={styles.label}>
-                Globo de Pintura — divergencia
+                {t("Globo de Pintura — divergencia")}
                 <input
                   style={styles.input}
                   type="number"
@@ -322,24 +379,164 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
               </label>
             )}
 
-            <div style={styles.sectionTitle}>Shuffle (mano rotativa)</div>
+            {enabledAbilities.has("brujula_mal_imantada") && (
+              <>
+                <label style={styles.label}>
+                  {t("Brújula Mal Imantada — máximo de turnos atrás")}
+                  <input
+                    style={styles.input}
+                    type="number"
+                    min={1}
+                    max={99}
+                    value={brujulaMaxTurnosAtras}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      const parsed = parseInt(e.target.value, 10);
+                      setBrujulaMaxTurnosAtras(Number.isFinite(parsed) ? parsed : 2);
+                    }}
+                  />
+                </label>
+              </>
+            )}
+
+            {enabledAbilities.has("papa_caliente") && (
+              <>
+                <label style={styles.label}>
+                  {t("Papa Caliente — turnos para pasarla")}
+                  <input
+                    style={styles.input}
+                    type="number"
+                    min={0}
+                    max={99}
+                    value={papaTurnosParaPasar}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      const parsed = parseInt(e.target.value, 10);
+                      setPapaTurnosParaPasar(Number.isFinite(parsed) ? parsed : 2);
+                    }}
+                  />
+                </label>
+                <label style={styles.label}>
+                  {t("Papa Caliente — turnos para repasarla (si ya fue pasada)")}
+                  <input
+                    style={styles.input}
+                    type="number"
+                    min={0}
+                    max={99}
+                    value={papaTurnosParaRepasar}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      const parsed = parseInt(e.target.value, 10);
+                      setPapaTurnosParaRepasar(Number.isFinite(parsed) ? parsed : 1);
+                    }}
+                  />
+                </label>
+                <label style={styles.label}>
+                  {t("Papa Caliente — daño de la explosión")}
+                  <input
+                    style={styles.input}
+                    type="number"
+                    min={1}
+                    max={999}
+                    value={papaDanoExplosion}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      const parsed = parseInt(e.target.value, 10);
+                      setPapaDanoExplosion(Number.isFinite(parsed) ? parsed : 3);
+                    }}
+                  />
+                </label>
+                <label style={styles.label}>
+                  {t("Papa Caliente — segundos para jugar")}
+                  <input
+                    style={styles.input}
+                    type="number"
+                    min={1}
+                    max={999}
+                    value={papaSegundosParaJugar}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      const parsed = parseInt(e.target.value, 10);
+                      setPapaSegundosParaJugar(Number.isFinite(parsed) ? parsed : 30);
+                    }}
+                  />
+                </label>
+              </>
+            )}
+
+            {enabledAbilities.has("acelerador_particulas") && (
+              <>
+                <label style={styles.label}>
+                  {t("Acelerador — turno de aparición (turnos jugados)")}
+                  <input
+                    style={styles.input}
+                    type="number"
+                    min={0}
+                    max={999}
+                    value={acelTurnoDeAparicion}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      const parsed = parseInt(e.target.value, 10);
+                      setAcelTurnoDeAparicion(Number.isFinite(parsed) ? parsed : 20);
+                    }}
+                  />
+                </label>
+                <label style={styles.label}>
+                  {t("Acelerador — jugadores para activarlo")}
+                  <input
+                    style={styles.input}
+                    type="number"
+                    min={1}
+                    max={4}
+                    value={acelJugadoresParaActivar}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      const parsed = parseInt(e.target.value, 10);
+                      setAcelJugadoresParaActivar(Number.isFinite(parsed) ? parsed : 2);
+                    }}
+                  />
+                </label>
+                <label style={styles.label}>
+                  {t("Acelerador — segundos por tick de daño")}
+                  <input
+                    style={styles.input}
+                    type="number"
+                    min={1}
+                    max={999}
+                    value={acelSegundosPorDano}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      const parsed = parseInt(e.target.value, 10);
+                      setAcelSegundosPorDano(Number.isFinite(parsed) ? parsed : 10);
+                    }}
+                  />
+                </label>
+                <label style={styles.label}>
+                  {t("Acelerador — daño por tick")}
+                  <input
+                    style={styles.input}
+                    type="number"
+                    min={1}
+                    max={999}
+                    value={acelDanoPorTardanza}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      const parsed = parseInt(e.target.value, 10);
+                      setAcelDanoPorTardanza(Number.isFinite(parsed) ? parsed : 1);
+                    }}
+                  />
+                </label>
+              </>
+            )}
+
+            <div style={styles.sectionTitle}>{t("Shuffle (mano rotativa)")}</div>
             <label style={styles.abilityCheckboxRow}>
               <input
                 type="checkbox"
                 checked={shuffleEnabled}
                 onChange={() => setShuffleEnabled((prev) => !prev)}
               />
-              Activar Shuffle
+              {t("Activar Shuffle")}
             </label>
 
             {shuffleEnabled && (
               <>
                 <p style={styles.hint}>
-                  Cada jugador ve solo algunas de las habilidades activadas arriba a la vez; la mano
-                  rota al empezar cada turno tuyo.
+                  {t("Cada jugador ve solo algunas de las habilidades activadas arriba a la vez; la mano rota al empezar cada turno tuyo.")}
                 </p>
                 <label style={styles.label}>
-                  Tamaño de la mano (cuántas habilidades ves a la vez)
+                  {t("Tamaño de la mano (cuántas habilidades ves a la vez)")}
                   <input
                     style={styles.input}
                     type="number"
@@ -354,12 +551,16 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                 </label>
                 {enabledAbilities.size > 0 && handSize > enabledAbilities.size && (
                   <p style={styles.hint}>
-                    Tienes {enabledAbilities.size} habilidad{enabledAbilities.size === 1 ? "" : "es"} activada
-                    {enabledAbilities.size === 1 ? "" : "s"} — la mano incluirá todas, no {handSize}.
+                    {t(
+                    enabledAbilities.size === 1
+                      ? "Tienes {n} habilidad activada — la mano incluirá todas, no {hand}."
+                      : "Tienes {n} habilidades activadas — la mano incluirá todas, no {hand}.",
+                    { n: enabledAbilities.size, hand: handSize }
+                  )}
                   </p>
                 )}
                 <label style={styles.label}>
-                  Usos sin consumir turno, por turno
+                  {t("Usos sin consumir turno, por turno")}
                   <input
                     style={styles.input}
                     type="number"
@@ -373,7 +574,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                   />
                 </label>
                 <p style={styles.hint}>
-                  Chicharrón y Balanza siempre consumen el turno completo, sin importar este número.
+                  {t("Chicharrón, Balanza, Brújula, Papa Caliente y Acelerador siempre consumen el turno completo, sin importar este número.")}
                 </p>
               </>
             )}
@@ -383,10 +584,10 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
               disabled={!canSubmit}
               onClick={handleCreate}
             >
-              {connecting ? "Conectando..." : "Crear sala"}
+              {connecting ? t("Conectando...") : t("Crear sala")}
             </button>
             <button style={styles.textButton} onClick={() => setMode("choose")}>
-              Volver
+              {t("Volver")}
             </button>
           </div>
         )}
@@ -394,7 +595,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
         {mode === "join" && (
           <div style={styles.buttonColumn}>
             <label style={styles.label}>
-              Código de sala
+              {t("Código de sala")}
               <input
                 style={{ ...styles.input, textTransform: "uppercase", letterSpacing: 4, textAlign: "center" }}
                 value={roomCodeInput}
@@ -408,10 +609,10 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
               disabled={!canSubmit || roomCodeInput.length !== 4}
               onClick={() => onJoinRoom(roomCodeInput, trimmedName)}
             >
-              {connecting ? "Conectando..." : "Unirme"}
+              {connecting ? t("Conectando...") : t("Unirme")}
             </button>
             <button style={styles.textButton} onClick={() => setMode("choose")}>
-              Volver
+              {t("Volver")}
             </button>
           </div>
         )}
@@ -421,6 +622,23 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
 }
 
 const styles: Record<string, React.CSSProperties> = {
+  termsLabel: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 8,
+    fontSize: 12,
+    lineHeight: 1.4,
+    color: "#aab1c3",
+    margin: "4px 0 12px",
+    cursor: "pointer",
+  },
+  termsCheckbox: {
+    marginTop: 2,
+    flexShrink: 0,
+  },
+  termsLink: {
+    color: "#7aa2f7",
+  },
   overlay: {
     position: "absolute",
     inset: 0,

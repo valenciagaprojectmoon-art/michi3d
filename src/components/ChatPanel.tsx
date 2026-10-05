@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useI18n, legalHref } from "../i18n";
 import type { ChangeEvent, KeyboardEvent } from "react";
 import type { ChatMessage } from "../game/protocol";
 import type { Player } from "../game/logic";
@@ -8,9 +9,11 @@ interface ChatPanelProps {
   players: Player[]; // para resolver el color del jugador que mandó cada mensaje
   myPlayerId: number;
   onSendChat: (text: string) => void;
+  onReportMessage: (message: ChatMessage, reason: string) => void; // reporta un mensaje ajeno a moderación
 }
 
-export function ChatPanel({ messages, players, myPlayerId, onSendChat }: ChatPanelProps) {
+export function ChatPanel({ messages, players, myPlayerId, onSendChat, onReportMessage }: ChatPanelProps) {
+  const { t, lang } = useI18n();
   const [collapsed, setCollapsed] = useState(true);
   const [draft, setDraft] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -31,12 +34,19 @@ export function ChatPanel({ messages, players, myPlayerId, onSendChat }: ChatPan
     if (e.key === "Enter") handleSend();
   };
 
+  const handleReport = (m: ChatMessage) => {
+    // window.prompt devuelve null si se cancela: en ese caso no se reporta nada.
+    const reason = window.prompt(t("Reportar el mensaje de {name}.\n¿Cuál es el motivo? (opcional)", { name: m.playerName }), "");
+    if (reason === null) return;
+    onReportMessage(m, reason);
+  };
+
   const playerColor = (playerId: number) => players.find((p) => p.id === playerId)?.color ?? "#9aa3b5";
 
   if (collapsed) {
     return (
       <button style={styles.collapsedButton} onClick={() => setCollapsed(false)}>
-        💬 Chat{messages.length > 0 ? ` (${messages.length})` : ""}
+        {t("💬 Chat")}{messages.length > 0 ? ` (${messages.length})` : ""}
       </button>
     );
   }
@@ -44,20 +54,32 @@ export function ChatPanel({ messages, players, myPlayerId, onSendChat }: ChatPan
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <span>Chat</span>
+        <span>{t("Chat")}</span>
         <button style={styles.collapseButton} onClick={() => setCollapsed(true)}>
           ✕
         </button>
       </div>
 
+      <div style={styles.privacyNotice}>
+        {t("🔒 El chat de esta sala se registra para moderación.")}{" "}
+        <a href={legalHref(lang, "privacy")} target="_blank" rel="noreferrer" style={styles.privacyLink}>
+          {t("Más info")}
+        </a>
+      </div>
+
       <div style={styles.messageList}>
-        {messages.length === 0 && <div style={styles.emptyHint}>Nadie ha escrito todavía.</div>}
+        {messages.length === 0 && <div style={styles.emptyHint}>{t("Nadie ha escrito todavía.")}</div>}
         {messages.map((m, i) => (
           <div key={i} style={styles.messageRow}>
             <span style={{ ...styles.messageAuthor, color: playerColor(m.playerId) }}>
-              {m.playerId === myPlayerId ? "Tú" : m.playerName}:
+              {m.playerId === myPlayerId ? t("Tú") : m.playerName}:
             </span>{" "}
             <span style={styles.messageText}>{m.text}</span>
+            {m.playerId !== myPlayerId && (
+              <button style={styles.reportButton} title={t("Reportar este mensaje")} onClick={() => handleReport(m)}>
+                ⚑
+              </button>
+            )}
           </div>
         ))}
         <div ref={messagesEndRef} />
@@ -69,11 +91,11 @@ export function ChatPanel({ messages, players, myPlayerId, onSendChat }: ChatPan
           value={draft}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Escribe un mensaje..."
+          placeholder={t("Escribe un mensaje...")}
           maxLength={500}
         />
         <button style={styles.sendButton} onClick={handleSend}>
-          Enviar
+          {t("Enviar")}
         </button>
       </div>
     </div>
@@ -128,6 +150,25 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#9aa3b5",
     cursor: "pointer",
     fontSize: 14,
+  },
+  privacyNotice: {
+    padding: "6px 14px",
+    fontSize: 11,
+    color: "#9aa3b5",
+    borderBottom: "1px solid #333a4d",
+    background: "rgba(255, 255, 255, 0.03)",
+  },
+  privacyLink: {
+    color: "#7aa2f7",
+  },
+  reportButton: {
+    background: "transparent",
+    border: "none",
+    color: "#6b7388",
+    cursor: "pointer",
+    fontSize: 12,
+    padding: "0 4px",
+    marginLeft: 4,
   },
   messageList: {
     flex: 1,
