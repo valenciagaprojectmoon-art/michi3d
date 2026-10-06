@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
  * aleatoriamente cada cierto intervalo, a diferencia de una animación CSS
  * fija (@keyframes) que siempre repite el mismo patrón predecible.
  *
- * Se usa para el temblor de pantalla del debuff de Globo de Pintura — mismo
+ * Se usa para el temblor de pantalla del debuff de Globo de Pintura - mismo
  * principio que DistortedCursor.tsx (offset aleatorio re-sorteado a
  * intervalos), pero aplicado al contenedor completo de la pantalla en vez
  * del cursor.
@@ -24,7 +24,7 @@ export function useScreenShake(divergence: number | null): { x: number; y: numbe
     }
 
     // El radio del temblor de pantalla es intencionalmente más chico que el
-    // del cursor (que puede llegar a 60px) — un temblor de pantalla completa
+    // del cursor (que puede llegar a 60px) - un temblor de pantalla completa
     // demasiado grande sería mareante en vez de solo molesto. Tope en 14px.
     const radius = Math.min(divergence * 1.2, 14);
 

@@ -43,7 +43,7 @@ export function HUD({
   const isMyTurn = myPlayerId !== undefined && currentPlayer?.id === myPlayerId;
 
   // Cronómetro visual: se recalcula cada segundo mientras la partida esté en curso
-  // y tenga un modo de tiempo activo. No envía nada al servidor — es puramente informativo,
+  // y tenga un modo de tiempo activo. No envía nada al servidor - es puramente informativo,
   // la autoridad real del timeout vive en el servidor (ver server.ts).
   const [secondsLeft, setSecondsLeft] = useState(() => computeSecondsLeft(game));
   useEffect(() => {
@@ -59,7 +59,7 @@ export function HUD({
   return (
     <div style={styles.container}>
       <div style={styles.topRow}>
-        <h1 style={styles.title}>Michi 3D</h1>
+        <h1 style={styles.title}>michi 3d</h1>
         <div style={styles.topRightGroup}>
           {roomCode && (
             <div style={styles.roomCodeBadge}>
@@ -134,11 +134,11 @@ export function HUD({
                 backgroundColor: players.find((p) => p.id === status.playerId)?.color,
               }}
             />
-            {tx("¡Ganó {name} — los demás quedaron eliminados 💔", { name: <strong>{players.find((p) => p.id === status.playerId)?.name}</strong> })}
+            {tx("¡Ganó {name}, los demás quedaron eliminados 💔", { name: <strong>{players.find((p) => p.id === status.playerId)?.name}</strong> })}
           </div>
         )}
 
-        {status.kind === "draw" && <div style={styles.turnIndicator}>{t("Empate — el tablero se llenó 🤝")}</div>}
+        {status.kind === "draw" && <div style={styles.turnIndicator}>{t("Empate: el tablero se llenó 🤝")}</div>}
 
         {status.kind === "ended_by_host" && (
           <div style={styles.turnIndicator}>{t("El creador de la sala terminó la partida ⏹")}</div>

@@ -85,7 +85,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
   const [acelJugadoresParaActivar, setAcelJugadoresParaActivar] = useState(2);
 
   // Sistema de Shuffle: mano rotativa de habilidades. Y (el pool) es implícito
-  // — es simplemente cuántas habilidades el creador activó arriba.
+  // - es simplemente cuántas habilidades el creador activó arriba.
   const [shuffleEnabled, setShuffleEnabled] = useState(false);
   const [handSize, setHandSize] = useState(2); // X
   const [noConsumeUsesPerTurn, setNoConsumeUsesPerTurn] = useState(1); // Z
@@ -154,7 +154,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
   return (
     <div style={styles.overlay}>
       <div style={styles.card}>
-        <h1 style={styles.title}>Michi 3D</h1>
+        <h1 style={styles.title}>michi 3d</h1>
         <p style={styles.subtitle}>{t("Tres en raya en un cubo 3×3×3")}</p>
 
         <label style={styles.label}>
@@ -245,8 +245,8 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                 onChange={(e: ChangeEvent<HTMLSelectElement>) => setTimeMode(e.target.value as TimerConfig["mode"])}
               >
                 <option value="none">{t("Sin límite")}</option>
-                <option value="turn">{t("Con límite — pierde el turno")}</option>
-                <option value="life">{t("Con límite — pierde vida")}</option>
+                <option value="turn">{t("Con límite: pierde el turno")}</option>
+                <option value="life">{t("Con límite: pierde vida")}</option>
               </select>
             </label>
 
@@ -314,7 +314,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
 
             {enabledAbilities.has("chicharron") && (
               <label style={styles.label}>
-                {t("Chicharrón — vida que cura")}
+                {t("Chicharrón: vida que cura")}
                 <input
                   style={styles.input}
                   type="number"
@@ -332,7 +332,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
             {enabledAbilities.has("goyslop") && (
               <>
                 <label style={styles.label}>
-                  {t("Goyslop — vida que cura")}
+                  {t("Goyslop: vida que cura")}
                   <input
                     style={styles.input}
                     type="number"
@@ -346,7 +346,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                   />
                 </label>
                 <label style={styles.label}>
-                  {t("Goyslop — vida máxima que pierde")}
+                  {t("Goyslop: vida máxima que pierde")}
                   <input
                     style={styles.input}
                     type="number"
@@ -364,7 +364,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
 
             {enabledAbilities.has("globo_pintura") && (
               <label style={styles.label}>
-                {t("Globo de Pintura — divergencia")}
+                {t("Globo de Pintura: divergencia")}
                 <input
                   style={styles.input}
                   type="number"
@@ -382,7 +382,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
             {enabledAbilities.has("brujula_mal_imantada") && (
               <>
                 <label style={styles.label}>
-                  {t("Brújula Mal Imantada — máximo de turnos atrás")}
+                  {t("Brújula Mal Imantada: máximo de turnos atrás")}
                   <input
                     style={styles.input}
                     type="number"
@@ -401,7 +401,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
             {enabledAbilities.has("papa_caliente") && (
               <>
                 <label style={styles.label}>
-                  {t("Papa Caliente — turnos para pasarla")}
+                  {t("Papa Caliente: turnos para pasarla")}
                   <input
                     style={styles.input}
                     type="number"
@@ -415,7 +415,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                   />
                 </label>
                 <label style={styles.label}>
-                  {t("Papa Caliente — turnos para repasarla (si ya fue pasada)")}
+                  {t("Papa Caliente: turnos para repasarla (si ya fue pasada)")}
                   <input
                     style={styles.input}
                     type="number"
@@ -429,7 +429,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                   />
                 </label>
                 <label style={styles.label}>
-                  {t("Papa Caliente — daño de la explosión")}
+                  {t("Papa Caliente: daño de la explosión")}
                   <input
                     style={styles.input}
                     type="number"
@@ -443,7 +443,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                   />
                 </label>
                 <label style={styles.label}>
-                  {t("Papa Caliente — segundos para jugar")}
+                  {t("Papa Caliente: segundos para jugar")}
                   <input
                     style={styles.input}
                     type="number"
@@ -462,7 +462,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
             {enabledAbilities.has("acelerador_particulas") && (
               <>
                 <label style={styles.label}>
-                  {t("Acelerador — turno de aparición (turnos jugados)")}
+                  {t("Acelerador: turno de aparición (turnos jugados)")}
                   <input
                     style={styles.input}
                     type="number"
@@ -476,7 +476,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                   />
                 </label>
                 <label style={styles.label}>
-                  {t("Acelerador — jugadores para activarlo")}
+                  {t("Acelerador: jugadores para activarlo")}
                   <input
                     style={styles.input}
                     type="number"
@@ -490,7 +490,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                   />
                 </label>
                 <label style={styles.label}>
-                  {t("Acelerador — segundos por tick de daño")}
+                  {t("Acelerador: segundos por tick de daño")}
                   <input
                     style={styles.input}
                     type="number"
@@ -504,7 +504,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                   />
                 </label>
                 <label style={styles.label}>
-                  {t("Acelerador — daño por tick")}
+                  {t("Acelerador: daño por tick")}
                   <input
                     style={styles.input}
                     type="number"
@@ -553,8 +553,8 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                   <p style={styles.hint}>
                     {t(
                     enabledAbilities.size === 1
-                      ? "Tienes {n} habilidad activada — la mano incluirá todas, no {hand}."
-                      : "Tienes {n} habilidades activadas — la mano incluirá todas, no {hand}.",
+                      ? "Tienes {n} habilidad activada, la mano incluirá todas, no {hand}."
+                      : "Tienes {n} habilidades activadas, la mano incluirá todas, no {hand}.",
                     { n: enabledAbilities.size, hand: handSize }
                   )}
                   </p>

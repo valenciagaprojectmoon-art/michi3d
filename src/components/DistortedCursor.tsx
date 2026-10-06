@@ -7,12 +7,12 @@ interface DistortedCursorProps {
 /**
  * Mientras el debuff de Globo de Pintura está activo, oculta el cursor real
  * del sistema y dibuja uno falso que sigue al ratón real pero con un
- * desplazamiento aleatorio que cambia constantemente — "la mano tiembla".
+ * desplazamiento aleatorio que cambia constantemente - "la mano tiembla".
  *
  * IMPORTANTE: esto es puramente visual. El clic real del navegador sigue
  * registrándose en la posición real del ratón (donde Three.js hace el
  * raycasting), no en la posición del cursor falso. El efecto dificulta
- * apuntar visualmente sin cambiar qué casilla termina recibiendo el clic —
+ * apuntar visualmente sin cambiar qué casilla termina recibiendo el clic -
  * así lo pidió el diseño: "la mano tiembla", no "la jugada se desvía".
  *
  * La magnitud del temblor escala con `divergence`: más divergencia, mayor
@@ -30,7 +30,7 @@ export function DistortedCursor({ divergence }: DistortedCursorProps) {
     window.addEventListener("mousemove", handleMouseMove);
 
     // El offset del temblor se re-sortea varias veces por segundo, no en cada
-    // frame — un temblor demasiado rápido se ve como ruido ilegible en vez de
+    // frame - un temblor demasiado rápido se ve como ruido ilegible en vez de
     // una mano temblorosa. La magnitud (radio del círculo de desplazamiento)
     // escala con divergence.
     const radius = Math.min(divergence * 4, 60); // clamp para que nunca sea imposible de usar

@@ -30,7 +30,7 @@ const PLAYER_TARGETED_ABILITIES: AbilityId[] = ["globo_pintura", "postcognicion"
 
 /**
  * Habilidades que necesitan elegir una CASILLA objetivo (delegado a App.tsx,
- * que controla el clic sobre el tablero 3D — este panel no puede manejar esa
+ * que controla el clic sobre el tablero 3D - este panel no puede manejar esa
  * selección por sí mismo, ya que el tablero vive fuera de este componente).
  */
 const CELL_TARGETED_ABILITIES: AbilityId[] = ["malversion_fondos"];
@@ -298,7 +298,7 @@ export function AbilityPanel({
             <div style={styles.zCounter}>
               {noConsumeUsesRemaining > 0
                 ? t("Usos gratis restantes este turno: {n}", { n: noConsumeUsesRemaining })
-                : t("Sin usos gratis — la siguiente habilidad consumirá tu turno")}
+                : t("Sin usos gratis: la siguiente habilidad consumirá tu turno")}
             </div>
           )}
           {displayedAbilities.map((ability) => {
@@ -335,7 +335,7 @@ export function AbilityPanel({
                             : t("Ya votaste para activar el Acelerador")
                         : willConsume
                       ? t("Usar habilidad (consume tu turno)")
-                      : t("Usar habilidad (no consume tu turno — te queda al menos 1 uso gratis)")
+                      : t("Usar habilidad (no consume tu turno, te queda al menos 1 uso gratis)")
                 }
               >
                 {t(label)}

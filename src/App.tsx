@@ -93,13 +93,13 @@ function AppLocal({ onExit }: { onExit: () => void }) {
 
 // ---------- Modo online: conecta al servidor, crea o une sala, juega en tiempo real ----------
 //
-// AppOnline SOLO decide qué pantalla mostrar según la fase de conexión — no
+// AppOnline SOLO decide qué pantalla mostrar según la fase de conexión - no
 // tiene Hooks propios de "estar jugando" (como useScreenShake). Eso vive en
 // AppInRoom, un componente que React monta/desmonta según la fase, en vez de
 // compartir el mismo árbol de Hooks que la pantalla de "Conectando..." o de
 // error. Esto evita por construcción el error #310 de React (Hooks en orden
 // inconsistente entre renders): como AppInRoom es un componente aparte,
-// nunca coexiste con menos Hooks que en otro render — simplemente no existe
+// nunca coexiste con menos Hooks que en otro render - simplemente no existe
 // hasta que la fase es in_room, y React lo trata como un montaje nuevo, no
 // como "el mismo componente con menos Hooks esta vez".
 
@@ -180,7 +180,7 @@ function AppInRoom({
   // El servidor entrega el efecto de Globo de Pintura justo cuando empieza tu turno
   // (ver consumeEffectsForTurn en el servidor). Visualmente, "vivimos" ese debuff
   // mientras dure tu turno: en cuanto isMyTurn se vuelve false, el filtro desaparece
-  // solo, sin necesitar temporizador propio en el cliente — coincide exactamente
+  // solo, sin necesitar temporizador propio en el cliente - coincide exactamente
   // con el timing que ya define el servidor.
   if (isMyTurn) {
     const distortEffect = lastEffects?.find((e) => e.kind === "screen_distort");

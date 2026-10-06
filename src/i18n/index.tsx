@@ -5,8 +5,8 @@ import { EN } from "./en";
 /** Idiomas disponibles. El español es el idioma base: sus textos son las claves de t(). */
 export type Lang = "es" | "en";
 export const LANGUAGES: { code: Lang; label: string }[] = [
-  { code: "es", label: "Español" },
-  { code: "en", label: "English" },
+  { code: "es", label: "español" },
+  { code: "en", label: "english" },
 ];
 
 const DICTIONARIES: Record<Exclude<Lang, "es">, Record<string, string>> = { en: EN };
@@ -14,6 +14,17 @@ const STORAGE_KEY = "michi3d-lang";
 
 export function isLang(value: unknown): value is Lang {
   return value === "es" || value === "en";
+}
+
+/**
+ * Estilo del producto: todo el texto de la interfaz se muestra en minúsculas (los textos serios, como los
+ * términos y la política de privacidad, son páginas aparte y no pasan por aquí). Los {parámetros} se respetan.
+ */
+export function styleUi(text: string): string {
+  return text
+    .split(/(\{\w+\})/g)
+    .map((part) => (/^\{\w+\}$/.test(part) ? part : part.toLowerCase()))
+    .join("");
 }
 
 /** Reemplaza {nombre} por su valor. Si falta un parámetro, deja el marcador tal cual. */
@@ -25,7 +36,7 @@ function format(template: string, params?: Record<string, string | number>): str
 /** Traducción pura (sin React): útil para tests. Sin traducción disponible → español. */
 export function translate(lang: Lang, key: string, params?: Record<string, string | number>): string {
   const text = lang === "es" ? key : (DICTIONARIES[lang][key] ?? key);
-  return format(text, params);
+  return format(styleUi(text), params);
 }
 
 /** Idioma inicial: el guardado por el usuario, si no el del navegador (en* → inglés), si no español. */
@@ -81,7 +92,7 @@ export function I18nProvider({ children, onLangChange }: { children: ReactNode; 
       setLang,
       t: (key, params) => translate(lang, key, params),
       tx: (key, params) => {
-        const template = translate(lang, key);
+        const template = styleUi(lang === "es" ? key : (DICTIONARIES[lang][key] ?? key));
         const parts = template.split(/(\{\w+\})/g);
         return createElement(
           Fragment,
