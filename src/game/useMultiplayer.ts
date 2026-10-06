@@ -52,14 +52,22 @@ interface UseMultiplayerResult {
   lastEffects: ActiveEffect[] | null; // efectos que te acaban de aplicar a TI (ej. pantalla desorientada)
 }
 
+// Servidor de producción (Render). Se usa cuando el juego está publicado y nadie configuró VITE_SERVER_URL.
+const PRODUCTION_SERVER_URL = "wss://michi3d-server.onrender.com";
+
 /**
- * Construye la URL del WebSocket a partir de VITE_SERVER_URL (definida en .env),
- * con fallback a localhost para desarrollo sin configurar nada.
+ * Dirección del WebSocket, por orden de prioridad:
+ * 1. VITE_SERVER_URL, si está definida (en .env o en Vercel).
+ * 2. localhost:8080 si la página se abrió desde tu propio ordenador (desarrollo).
+ * 3. El servidor de producción, si la página está publicada (ej. en Vercel). Antes aquí también se usaba
+ *    localhost, y por eso el modo online fallaba al jugar desde internet.
  */
 function getServerUrl(): string {
   const configured = import.meta.env.VITE_SERVER_URL as string | undefined;
   if (configured) return configured;
-  return "ws://localhost:8080";
+  const host = window.location.hostname;
+  const isLocal = host === "localhost" || host === "127.0.0.1" || host === "[::1]" || host.endsWith(".local");
+  return isLocal ? "ws://localhost:8080" : PRODUCTION_SERVER_URL;
 }
 
 export function useMultiplayer(): UseMultiplayerResult {
