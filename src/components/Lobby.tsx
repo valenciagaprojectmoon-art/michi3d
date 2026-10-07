@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useI18n, legalHref } from "../i18n";
+import { ABILITY_INFO } from "../game/abilityInfo";
 import type { ChangeEvent } from "react";
 import type { TimerConfig, TimeoutAction, LifeConfig, BoardConfig } from "../game/logic";
 import { normalizeBoardConfig, MIN_BOARD_SIZE, MAX_BOARD_SIZE, MIN_LINE_LENGTH } from "../game/logic";
@@ -54,11 +55,23 @@ const ABILITY_LABELS: Record<AbilityId, string> = {
   malversion_fondos: "💰 Malversión de Fondos",
 };
 
+/** Código de sala del enlace de invitación (?sala=ABCD), o "" si no hay o no es válido. */
+function inviteCodeFromUrl(): string {
+  try {
+    const code = new URLSearchParams(window.location.search).get("sala");
+    return code && /^[A-Za-z0-9]{4}$/.test(code) ? code.toUpperCase() : "";
+  } catch {
+    return "";
+  }
+}
+
 export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, connecting }: LobbyProps) {
   const { t, tx, lang } = useI18n();
   const [name, setName] = useState("");
-  const [roomCodeInput, setRoomCodeInput] = useState("");
-  const [mode, setMode] = useState<LobbyMode>("choose");
+  // Si se abrió un enlace de invitación (?sala=ABCD), arrancamos directo en "unirme" con el código puesto.
+  const inviteCode = inviteCodeFromUrl();
+  const [roomCodeInput, setRoomCodeInput] = useState(inviteCode);
+  const [mode, setMode] = useState<LobbyMode>(inviteCode ? "join" : "choose");
 
   // Configuración de tiempo, solo relevante en modo "configure".
   const [timeMode, setTimeMode] = useState<TimerConfig["mode"]>("none");
@@ -351,7 +364,10 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                     checked={enabledAbilities.has(ability)}
                     onChange={() => toggleAbility(ability)}
                   />
-                  {t(ABILITY_LABELS[ability])}
+                  <span>
+                    {t(ABILITY_LABELS[ability])}
+                    <span style={styles.abilityInfo}>{t(ABILITY_INFO[ability])}</span>
+                  </span>
                 </label>
               ))}
             </div>
@@ -666,6 +682,12 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
 }
 
 const styles: Record<string, React.CSSProperties> = {
+  abilityInfo: {
+    display: "block",
+    fontSize: 12,
+    color: "#8b93a7",
+    marginTop: 2,
+  },
   termsLabel: {
     display: "flex",
     alignItems: "flex-start",

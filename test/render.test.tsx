@@ -40,6 +40,14 @@ const cEn = chat("en"), cEs = chat("es");
 ok((cEn.includes("send") || cEn.includes("💬 chat")) && !cEn.includes("enviar"), "Chat en inglés");
 ok(cEs.includes("enviar") || cEs.includes("💬 chat"), "Chat en español");
 
+const over = { ...game, status: { kind: "draw" } } as any;
+const hudOver = (lang: string, votes: number[]) => withLang(lang, <HUD game={over} onReset={() => {}} roomCode="ABCD" myPlayerId={1} onRematch={() => {}} rematchVotes={votes} rematchTotal={2} />);
+ok(hudOver("en", []).includes(">rematch<") && hudOver("es", []).includes(">revancha<"), "HUD: botón de revancha al terminar la partida");
+ok(hudOver("en", [0]).includes("rematch: 1 of 2") && hudOver("es", [0]).includes("revancha: 1 de 2"), "HUD: contador de votos de revancha");
+ok(hudOver("en", [1]).includes("disabled"), "HUD: si ya votaste, el botón queda desactivado");
+ok(!hud("en").includes("rematch"), "HUD: sin partida terminada no hay revancha");
+ok(hudOver("en", []).includes("copy link") && hudOver("es", []).includes("copiar enlace"), "HUD: botón de copiar enlace de invitación");
+
 const sw = withLang("en", <LanguageSwitcher />);
 ok(sw.includes("español") && sw.includes("english") && sw.includes('aria-label="language"'), "Selector de idioma: opciones y etiqueta accesible en inglés");
 ok(withLang("es", <LanguageSwitcher />).includes('aria-label="idioma"'), "Selector de idioma: etiqueta en español");

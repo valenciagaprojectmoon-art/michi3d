@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useI18n } from "../i18n";
+import { ABILITY_INFO } from "../game/abilityInfo";
 import type { AbilitiesConfig, AbilityId, ShuffleConfig, PapaCalienteState, AceleradorState } from "../game/abilities";
 import type { AbilityExtras } from "../game/useMultiplayer";
 import { shouldConsumeTurn } from "../game/abilities";
@@ -298,7 +299,7 @@ export function AbilityPanel({
             <div style={styles.zCounter}>
               {noConsumeUsesRemaining > 0
                 ? t("Usos gratis restantes este turno: {n}", { n: noConsumeUsesRemaining })
-                : t("Sin usos gratis: la siguiente habilidad consumirá tu turno")}
+                : t("Sin usos gratis, la próxima habilidad te cuesta el turno.")}
             </div>
           )}
           {displayedAbilities.map((ability) => {
@@ -322,8 +323,7 @@ export function AbilityPanel({
                 style={{ ...styles.abilityButton, opacity: isMyTurn && !papaBlocked && !acelBlocked ? 1 : 0.5 }}
                 disabled={!isMyTurn || papaBlocked || acelBlocked}
                 onClick={() => handleClick(ability)}
-                title={
-                  !isMyTurn
+                title={t(ABILITY_INFO[ability]) + "\n\n" + (!isMyTurn
                     ? t("Solo puedes usar habilidades en tu turno")
                     : papaBlocked
                       ? t("La Papa Caliente la tiene {who}", { who: holderName ?? "" })
@@ -335,8 +335,7 @@ export function AbilityPanel({
                             : t("Ya votaste para activar el Acelerador")
                         : willConsume
                       ? t("Usar habilidad (consume tu turno)")
-                      : t("Usar habilidad (no consume tu turno, te queda al menos 1 uso gratis)")
-                }
+                      : t("Usar habilidad (no consume tu turno, te queda al menos 1 uso gratis)"))}
               >
                 {t(label)}
                 {shuffle && !willConsume && <span style={styles.freeTag}>{t(" · gratis")}</span>}

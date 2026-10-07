@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "./i18n";
+import { loadSession, clearSession } from "./game/session";
 import { createInitialState, playMove, resetGame } from "./game/logic";
 import type { TimerConfig, LifeConfig, BoardConfig } from "./game/logic";
 import type { AbilitiesConfig, AbilityId, ShuffleConfig } from "./game/abilities";
@@ -29,14 +30,28 @@ type PendingAction =
 type AppMode = { kind: "choosing" } | { kind: "local"; boardConfig: BoardConfig } | { kind: "online"; initialAction: PendingAction };
 
 export default function App() {
-  const [mode, setMode] = useState<AppMode>({ kind: "choosing" });
+  // Si refrescaste la página en mitad de una partida, volvemos a entrar a esa sala sin pasar por el lobby.
+  const [mode, setMode] = useState<AppMode>(() => {
+    const saved = loadSession();
+    return saved
+      ? { kind: "online", initialAction: { kind: "join", roomCode: saved.roomCode, playerName: saved.playerName } }
+      : { kind: "choosing" };
+  });
 
   if (mode.kind === "local") {
     return <AppLocal boardConfig={mode.boardConfig} onExit={() => setMode({ kind: "choosing" })} />;
   }
 
   if (mode.kind === "online") {
-    return <AppOnline onExit={() => setMode({ kind: "choosing" })} initialAction={mode.initialAction} />;
+    return (
+      <AppOnline
+        onExit={() => {
+          clearSession();
+          setMode({ kind: "choosing" });
+        }}
+        initialAction={mode.initialAction}
+      />
+    );
   }
 
   // "choosing": formulario inicial. El dato de create/join se guarda directamente
@@ -131,7 +146,7 @@ function AppOnline({ onExit, initialAction }: { onExit: () => void; initialActio
 
   return (
     <div style={{ width: "100vw", height: "100vh", background: "#14161e", position: "relative" }}>
-      {phase.kind === "connecting" && <div style={connectingStyle}>{t("Conectando al servidor...")}</div>}
+      {phase.kind === "connecting" && <div style={connectingStyle}>{t("Conectando... si el servidor estaba dormido, puede tardar un minuto.")}</div>}
       {phase.kind === "error" && (
         <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
           <Lobby
@@ -160,7 +175,7 @@ function AppInRoom({
   multiplayer: ReturnType<typeof useMultiplayer>;
   onExit: () => void;
 }) {
-  const { playMove, resetGame, leaveRoom, endGame, setLocked, useAbility, sendChat, reportMessage, chatMessages, lastNotice, lastEffects } =
+  const { playMove, resetGame, leaveRoom, endGame, setLocked, useAbility, sendChat, rematch, reportMessage, chatMessages, lastNotice, lastEffects } =
     multiplayer;
   const { state, playerId, roomCode } = phase;
   const { t } = useI18n();
@@ -267,6 +282,9 @@ function AppInRoom({
         onLeave={handleLeave}
         onEndGame={endGame}
         onToggleLocked={setLocked}
+        onRematch={rematch}
+        rematchVotes={state.rematchVotes}
+        rematchTotal={state.connectedPlayerIds.length}
       />
       {gameActive && (
         <AbilityPanel
@@ -305,7 +323,7 @@ function AppInRoom({
       {lastEffects && lastEffects.length > 0 && (
         <div style={effectNoticeStyle}>
           {lastEffects.map((e, i) => (
-            <div key={i}>{e.kind === "screen_distort" ? t("🎨 ¡Te tiraron un Globo de Pintura! Tu pantalla se ve rara este turno.") : t("Se aplicó un efecto.")}</div>
+            <div key={i}>{e.kind === "screen_distort" ? t("🎨 ¡Te tiraron un Globo de Pintura! Tu pantalla se ve rara este turno.") : t("Te tocó un efecto.")}</div>
           ))}
         </div>
       )}

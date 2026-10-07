@@ -12,6 +12,9 @@ interface HUDProps {
   onLeave?: () => void; // presente solo en modo online
   onEndGame?: () => void; // presente solo en modo online, solo el host lo usa realmente
   onToggleLocked?: (locked: boolean) => void; // presente solo en modo online, solo el host lo usa realmente
+  onRematch?: () => void; // presente solo en modo online
+  rematchVotes?: number[]; // ids de quienes ya pidieron revancha
+  rematchTotal?: number; // cuántos jugadores conectados tienen que pedirla
 }
 
 /**
@@ -36,8 +39,24 @@ export function HUD({
   onLeave,
   onEndGame,
   onToggleLocked,
+  onRematch,
+  rematchVotes = [],
+  rematchTotal = 0,
 }: HUDProps) {
   const { t, tx } = useI18n();
+  const [copied, setCopied] = useState(false);
+
+  const copyInvite = () => {
+    if (!roomCode) return;
+    const link = `${window.location.origin}/?sala=${roomCode}`;
+    navigator.clipboard?.writeText(link).then(
+      () => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      },
+      () => window.prompt(t("Copiar enlace"), link) // si el navegador no deja copiar solo, lo mostramos para copiarlo a mano
+    );
+  };
   const { players, currentPlayerIndex, status, timerConfig, currentLife, maxLife } = game;
   const currentPlayer = players[currentPlayerIndex];
   const isMyTurn = myPlayerId !== undefined && currentPlayer?.id === myPlayerId;
@@ -65,6 +84,22 @@ export function HUD({
             <div style={styles.roomCodeBadge}>
               {t("Sala")} <strong>{roomCode}</strong>
             </div>
+          )}
+          {roomCode && (
+            <button style={styles.resetButton} onClick={copyInvite}>
+              {copied ? t("Enlace copiado") : t("Copiar enlace")}
+            </button>
+          )}
+          {onRematch && status.kind !== "playing" && (
+            <button
+              style={{ ...styles.resetButton, opacity: myPlayerId !== undefined && rematchVotes.includes(myPlayerId) ? 0.6 : 1 }}
+              disabled={myPlayerId !== undefined && rematchVotes.includes(myPlayerId)}
+              onClick={onRematch}
+            >
+              {rematchVotes.length > 0
+                ? t("Revancha: {votes} de {total}", { votes: rematchVotes.length, total: rematchTotal })
+                : t("Revancha")}
+            </button>
           )}
           <button style={styles.resetButton} onClick={onReset}>
             {t("Reiniciar")}

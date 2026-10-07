@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { translate, useI18n } from "../i18n";
+import { saveSession, clearSession } from "./session";
 import type { ClientMessage, ServerMessage, PublicRoomState, ChatMessage } from "./protocol";
 import { TERMS_VERSION } from "./protocol";
 import type { TimerConfig, LifeConfig, BoardConfig } from "./logic";
@@ -47,6 +48,7 @@ interface UseMultiplayerResult {
     extras?: AbilityExtras
   ) => void;
   sendChat: (text: string) => void;
+  rematch: () => void;
   reportMessage: (message: ChatMessage, reason: string) => void;
   chatMessages: ChatMessage[]; // historial completo de chat de la sala actual
   lastNotice: string | null; // avisos efímeros: "X se desconectó", etc.
@@ -112,6 +114,7 @@ export function useMultiplayer(): UseMultiplayerResult {
       switch (msg.type) {
         case "room_created":
         case "room_joined":
+          if ("playerName" in onOpenMessage) saveSession(msg.roomCode, onOpenMessage.playerName); // para volver si refrescas
           setPhase({ kind: "in_room", playerId: msg.playerId, roomCode: msg.roomCode, state: msg.state });
           setChatMessages(msg.state.chatHistory);
           break;
@@ -133,7 +136,7 @@ export function useMultiplayer(): UseMultiplayerResult {
           setChatMessages((prev) => [...prev, msg.message]);
           break;
         case "report_received":
-          setLastNotice(tr("Reporte enviado. Un moderador lo revisará."));
+          setLastNotice(tr("Reporte enviado, lo revisaremos."));
           break;
         case "error":
           // Si ya estamos dentro de una sala, un error (ej. "No es tu turno",
@@ -147,6 +150,7 @@ export function useMultiplayer(): UseMultiplayerResult {
               setLastNotice(msg.message);
               return prev;
             }
+            clearSession(); // si la sala ya no existe, no insistir en reconectar
             return { kind: "error", message: msg.message };
           });
           break;
@@ -154,7 +158,7 @@ export function useMultiplayer(): UseMultiplayerResult {
     };
 
     ws.onerror = () => {
-      setPhase({ kind: "error", message: tr("No se pudo conectar al servidor. Verifica la dirección o tu conexión.") });
+      setPhase({ kind: "error", message: tr("No hay forma de conectar con el servidor. Revisa tu internet y prueba otra vez.") });
     };
 
     ws.onclose = (event) => {
@@ -163,8 +167,8 @@ export function useMultiplayer(): UseMultiplayerResult {
       wsRef.current = null;
       // Cierres por límites del servidor (ver ratelimit.ts): se explican en vez de fallar en silencio.
       const reasons: Record<number, string> = {
-        1008: tr("Te desconectamos por enviar demasiadas peticiones. Espera un par de minutos antes de volver a entrar."),
-        1013: tr("El servidor tiene demasiadas conexiones desde tu red ahora mismo. Inténtalo de nuevo en un momento."),
+        1008: tr("Te sacamos por mandar demasiadas peticiones. Espera un par de minutos y vuelve a entrar."),
+        1013: tr("Hay demasiadas conexiones desde tu red ahora mismo. Prueba de nuevo en un rato."),
         1009: tr("Se envió un mensaje demasiado grande y se cerró la conexión."),
       };
       const message = reasons[event.code];
@@ -233,6 +237,7 @@ export function useMultiplayer(): UseMultiplayerResult {
       }),
     [send]
   );
+  const rematch = useCallback(() => send({ type: "rematch" }), [send]);
   const sendChat = useCallback((text: string) => send({ type: "send_chat", text }), [send]);
   const reportMessage = useCallback(
     (message: ChatMessage, reason: string) =>
@@ -241,6 +246,7 @@ export function useMultiplayer(): UseMultiplayerResult {
   );
 
   const leaveRoom = useCallback(() => {
+    clearSession(); // salir a propósito: no volver a entrar solo al refrescar
     send({ type: "leave_room" });
     wsRef.current?.close();
     wsRef.current = null;
@@ -265,6 +271,7 @@ export function useMultiplayer(): UseMultiplayerResult {
     setLocked,
     useAbility,
     sendChat,
+    rematch,
     reportMessage,
     chatMessages,
     lastNotice,
