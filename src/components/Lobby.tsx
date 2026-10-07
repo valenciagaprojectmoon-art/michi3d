@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useI18n, legalHref } from "../i18n";
 import type { ChangeEvent } from "react";
-import type { TimerConfig, TimeoutAction, LifeConfig } from "../game/logic";
+import type { TimerConfig, TimeoutAction, LifeConfig, BoardConfig } from "../game/logic";
+import { normalizeBoardConfig, MIN_BOARD_SIZE, MAX_BOARD_SIZE, MIN_LINE_LENGTH } from "../game/logic";
 import type { AbilitiesConfig, AbilityId, ShuffleConfig } from "../game/abilities";
 
 interface LobbyProps {
@@ -12,10 +13,11 @@ interface LobbyProps {
       lifeConfig: LifeConfig;
       abilitiesConfig: AbilitiesConfig;
       shuffleConfig: ShuffleConfig | null;
+      boardConfig: BoardConfig;
     }
   ) => void;
   onJoinRoom: (roomCode: string, playerName: string) => void;
-  onPlayLocal: () => void;
+  onPlayLocal: (boardConfig: BoardConfig) => void;
   errorMessage: string | null;
   connecting: boolean;
 }
@@ -73,6 +75,8 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
   const [goyslopCuracion, setGoyslopCuracion] = useState(4);
   const [goyslopPerdidaMaxima, setGoyslopPerdidaMaxima] = useState(2);
   const [globoDivergencia, setGloboDivergencia] = useState(5);
+  const [boardSize, setBoardSize] = useState(3); // dimensión del cubo (por defecto 3)
+  const [lineLength, setLineLength] = useState(3); // dimensión de línea (por defecto 3)
   const [acceptedTerms, setAcceptedTerms] = useState(false); // obligatorio para jugar ONLINE (el modo local no lo necesita)
   const [brujulaMaxTurnosAtras, setBrujulaMaxTurnosAtras] = useState(2);
   const [papaTurnosParaPasar, setPapaTurnosParaPasar] = useState(2);
@@ -148,6 +152,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
       lifeConfig: buildLifeConfig(),
       abilitiesConfig: buildAbilitiesConfig(),
       shuffleConfig: buildShuffleConfig(),
+      boardConfig: normalizeBoardConfig({ size: boardSize, lineLength }),
     });
   };
 
@@ -213,7 +218,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
             >
               {t("Unirme con un código")}
             </button>
-            <button style={styles.textButton} onClick={onPlayLocal}>
+            <button style={styles.textButton} onClick={() => onPlayLocal(normalizeBoardConfig({ size: boardSize, lineLength }))}>
               {t("Jugar en este dispositivo (sin internet)")}
             </button>
           </div>
@@ -221,6 +226,45 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
 
         {mode === "configure" && (
           <div style={styles.buttonColumn}>
+            <div style={styles.sectionTitle}>{t("Cubo")}</div>
+            <label style={styles.label}>
+              {t("Dimensión del cubo")}
+              <input
+                style={styles.input}
+                type="number"
+                min={MIN_BOARD_SIZE}
+                max={MAX_BOARD_SIZE}
+                value={boardSize}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                  // Al cambiar el cubo, la línea se recorta si ya no cabe (nunca puede ser mayor que el cubo).
+                  const next = normalizeBoardConfig({ size: parseInt(e.target.value, 10), lineLength });
+                  setBoardSize(next.size);
+                  setLineLength(next.lineLength);
+                }}
+              />
+            </label>
+            <label style={styles.label}>
+              {t("Dimensión de línea")}
+              <input
+                style={styles.input}
+                type="number"
+                min={MIN_LINE_LENGTH}
+                max={boardSize}
+                value={lineLength}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setLineLength(normalizeBoardConfig({ size: boardSize, lineLength: parseInt(e.target.value, 10) }).lineLength)
+                }
+              />
+            </label>
+            <div style={styles.hint}>
+              {t("Cubo de {size}×{size}×{size}: {cells} casillas. Gana quien junte {line} en línea recta.", {
+                size: boardSize,
+                cells: boardSize ** 3,
+                line: lineLength,
+              })}{" "}
+              {t("Mínimo {min}, máximo {max}. La línea no puede ser mayor que el cubo.", { min: MIN_BOARD_SIZE, max: MAX_BOARD_SIZE })}
+            </div>
+
             <div style={styles.sectionTitle}>{t("Vida")}</div>
             <label style={styles.label}>
               {t("Vida inicial de cada jugador")}

@@ -19,6 +19,12 @@ export const EN: Record<string, string> = {
   "Crear sala nueva": "Create a new room",
   "Unirme con un código": "Join with a code",
   "Jugar en este dispositivo (sin internet)": "Play on this device (offline)",
+  "Cubo": "Cube",
+  "Dimensión del cubo": "Cube dimension",
+  "Dimensión de línea": "Line dimension",
+  "Cubo de {size}×{size}×{size}: {cells} casillas. Gana quien junte {line} en línea recta.":
+    "{size}×{size}×{size} cube: {cells} cells. Whoever gets {line} in a straight line wins.",
+  "Mínimo {min}, máximo {max}. La línea no puede ser mayor que el cubo.": "Minimum {min}, maximum {max}. The line can't be longer than the cube.",
   "Vida": "Life",
   "Vida inicial de cada jugador": "Starting life for each player",
   "Tiempo por turno": "Time per turn",

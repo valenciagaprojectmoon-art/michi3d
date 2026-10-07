@@ -1,9 +1,10 @@
-import { indexToCoord, CELL_COUNT } from "../game/logic";
+import { indexToCoord } from "../game/logic";
 import type { Board, Player, WinLine } from "../game/logic";
 import { Cell } from "./Cell";
 
 interface Board3DProps {
   board: Board;
+  size: number; // dimensión del cubo (casillas por lado)
   players: Player[];
   winLine: WinLine | null;
   gameActive: boolean; // false cuando ya hay ganador o empate
@@ -18,20 +19,17 @@ interface Board3DProps {
 }
 
 const SPACING = 1.1; // distancia entre centros de casillas contiguas
-const OFFSET = 1.1; // centra el cubo (coord 0..2 -> -1.1..0..1.1)
 
-/**
- * Convierte coordenada de rejilla (0,1,2) a posición en el mundo 3D,
- * centrando el cubo completo en el origen.
- */
-function gridToWorld(coord: number): number {
-  return coord * SPACING - OFFSET;
+/** Coordenada de rejilla (0..size-1) a posición en el mundo, con el cubo centrado en el origen. */
+function gridToWorld(coord: number, size: number): number {
+  return (coord - (size - 1) / 2) * SPACING;
 }
 
-export function Board3D({ board, players, winLine, gameActive, onCellClick, cellSelectionMode }: Board3DProps) {
+export function Board3D({ board, size, players, winLine, gameActive, onCellClick, cellSelectionMode }: Board3DProps) {
   const cells = [];
-  for (let i = 0; i < CELL_COUNT; i++) {
-    const { x, y, z } = indexToCoord(i);
+  const cellCount = size * size * size;
+  for (let i = 0; i < cellCount; i++) {
+    const { x, y, z } = indexToCoord(i, size);
     const isWinningCell = winLine !== null && winLine.includes(i);
     const canPlay = cellSelectionMode
       ? board[i] !== null && board[i] !== cellSelectionMode.myPlayerId
@@ -40,7 +38,7 @@ export function Board3D({ board, players, winLine, gameActive, onCellClick, cell
     cells.push(
       <Cell
         key={i}
-        position={[gridToWorld(x), gridToWorld(y), gridToWorld(z)]}
+        position={[gridToWorld(x, size), gridToWorld(y, size), gridToWorld(z, size)]}
         mark={board[i]}
         players={players}
         isWinningCell={isWinningCell}
@@ -53,9 +51,9 @@ export function Board3D({ board, players, winLine, gameActive, onCellClick, cell
   return (
     <group>
       {cells}
-      {/* Wireframe contenedor: ayuda a percibir el cubo como un todo, no solo 27 cubitos sueltos */}
+      {/* Wireframe contenedor: ayuda a percibir el cubo como un todo, no solo cubitos sueltos */}
       <mesh>
-        <boxGeometry args={[SPACING * 3, SPACING * 3, SPACING * 3]} />
+        <boxGeometry args={[SPACING * size, SPACING * size, SPACING * size]} />
         <meshBasicMaterial color="#4a5568" wireframe transparent opacity={0.25} />
       </mesh>
     </group>

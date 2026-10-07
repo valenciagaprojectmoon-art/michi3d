@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { translate, useI18n } from "../i18n";
 import type { ClientMessage, ServerMessage, PublicRoomState, ChatMessage } from "./protocol";
 import { TERMS_VERSION } from "./protocol";
-import type { TimerConfig, LifeConfig } from "./logic";
+import type { TimerConfig, LifeConfig, BoardConfig } from "./logic";
 import type { AbilitiesConfig, AbilityId, ActiveEffect, ShuffleConfig } from "./abilities";
 
 /**
@@ -20,6 +20,7 @@ interface CreateRoomOptions {
   lifeConfig: LifeConfig;
   abilitiesConfig: AbilitiesConfig;
   shuffleConfig: ShuffleConfig | null;
+  boardConfig: BoardConfig;
 }
 
 /** Parámetros extra de habilidades que no encajan en los objetivos de jugador/casilla. */
@@ -180,6 +181,7 @@ export function useMultiplayer(): UseMultiplayerResult {
         lifeConfig: options.lifeConfig,
         abilitiesConfig: options.abilitiesConfig,
         shuffleConfig: options.shuffleConfig,
+        boardConfig: options.boardConfig,
         // El Lobby solo permite llamar aquí si el jugador marcó la casilla de aceptación.
         acceptedTerms: TERMS_VERSION,
         lang: langRef.current,

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "./i18n";
 import { createInitialState, playMove, resetGame } from "./game/logic";
-import type { TimerConfig, LifeConfig } from "./game/logic";
+import type { TimerConfig, LifeConfig, BoardConfig } from "./game/logic";
 import type { AbilitiesConfig, AbilityId, ShuffleConfig } from "./game/abilities";
 import { isValidCellTarget } from "./game/abilities";
 import { useMultiplayer } from "./game/useMultiplayer";
@@ -19,19 +19,20 @@ interface CreateRoomOptions {
   lifeConfig: LifeConfig;
   abilitiesConfig: AbilitiesConfig;
   shuffleConfig: ShuffleConfig | null;
+  boardConfig: BoardConfig;
 }
 
 type PendingAction =
   | { kind: "create"; playerName: string; options: CreateRoomOptions }
   | { kind: "join"; roomCode: string; playerName: string };
 
-type AppMode = { kind: "choosing" } | { kind: "local" } | { kind: "online"; initialAction: PendingAction };
+type AppMode = { kind: "choosing" } | { kind: "local"; boardConfig: BoardConfig } | { kind: "online"; initialAction: PendingAction };
 
 export default function App() {
   const [mode, setMode] = useState<AppMode>({ kind: "choosing" });
 
   if (mode.kind === "local") {
-    return <AppLocal onExit={() => setMode({ kind: "choosing" })} />;
+    return <AppLocal boardConfig={mode.boardConfig} onExit={() => setMode({ kind: "choosing" })} />;
   }
 
   if (mode.kind === "online") {
@@ -49,7 +50,7 @@ export default function App() {
         onJoinRoom={(roomCode, playerName) =>
           setMode({ kind: "online", initialAction: { kind: "join", roomCode, playerName } })
         }
-        onPlayLocal={() => setMode({ kind: "local" })}
+        onPlayLocal={(boardConfig) => setMode({ kind: "local", boardConfig })}
         errorMessage={null}
         connecting={false}
       />
@@ -63,8 +64,8 @@ export default function App() {
 // objetivo necesitan un reloj y una autoridad compartida entre jugadores, que
 // en local no aporta nada (todos comparten el mismo dispositivo).
 
-function AppLocal({ onExit }: { onExit: () => void }) {
-  const [state, setState] = useState(() => createInitialState());
+function AppLocal({ onExit, boardConfig }: { onExit: () => void; boardConfig: BoardConfig }) {
+  const [state, setState] = useState(() => createInitialState(undefined, undefined, undefined, boardConfig));
 
   const handleCellClick = (index: number) => {
     setState((prev) => playMove(prev, index));
@@ -81,6 +82,7 @@ function AppLocal({ onExit }: { onExit: () => void }) {
     <div style={{ width: "100vw", height: "100vh", background: "#14161e", position: "relative" }}>
       <GameScene
         board={state.board}
+        size={state.boardConfig.size}
         players={state.players}
         winLine={winLine}
         gameActive={gameActive}
@@ -247,6 +249,7 @@ function AppInRoom({
       >
         <GameScene
           board={state.game.board}
+          size={state.game.boardConfig.size}
           players={state.game.players}
           winLine={winLine}
           gameActive={gameActive && isMyTurn}
