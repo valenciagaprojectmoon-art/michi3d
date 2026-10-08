@@ -709,15 +709,22 @@ const styles: Record<string, React.CSSProperties> = {
     position: "absolute",
     inset: 0,
     display: "flex",
-    alignItems: "center",
+    // Con "center" aquí, si la tarjeta era más alta que la pantalla se cortaba por arriba y no había forma de
+    // llegar. Con "flex-start" + margin auto en la tarjeta: centrada si cabe, con scroll normal si no.
+    alignItems: "flex-start",
     justifyContent: "center",
     background: "rgba(10, 11, 16, 0.85)",
     fontFamily: "system-ui, -apple-system, sans-serif",
     zIndex: 10,
     overflowY: "auto",
-    padding: "24px 0",
+    overscrollBehavior: "contain",
+    WebkitOverflowScrolling: "touch",
+    padding: "24px 16px",
   },
   card: {
+    margin: "auto",
+    maxWidth: "100%",
+    flexShrink: 0, // que no se aplaste para caber: que crezca y se pueda hacer scroll
     background: "#1c2030",
     border: "1px solid #333a4d",
     borderRadius: 16,
