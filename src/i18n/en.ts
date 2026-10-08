@@ -135,6 +135,9 @@ export const EN: Record<string, string> = {
   "Tómala o pásasela a alguien. Si se la queda demasiado tiempo, le explota y pierde vida.": "Take it or pass it on. If someone holds it for too long, it blows up on them and they lose life.",
   "Aparece tarde en la partida. Si votan los suficientes, el que tarde en jugar pierde vida.": "It shows up late in the game. If enough players vote for it, whoever takes too long to play loses life.",
 
+  // Cubo
+  "Abrir cubo": "Open cube",
+
   // Revancha e invitación
   "Revancha": "Rematch",
   "Revancha: {votes} de {total}": "Rematch: {votes} of {total}",

@@ -13,6 +13,8 @@ import { Lobby } from "./components/Lobby";
 import { AbilityPanel } from "./components/AbilityPanel";
 import { DistortedCursor } from "./components/DistortedCursor";
 import { ChatPanel } from "./components/ChatPanel";
+import { CubeControls } from "./components/CubeControls";
+import { defaultSpread } from "./game/cubeLayout";
 import { useScreenShake } from "./hooks/useScreenShake";
 
 interface CreateRoomOptions {
@@ -81,6 +83,7 @@ export default function App() {
 
 function AppLocal({ onExit, boardConfig }: { onExit: () => void; boardConfig: BoardConfig }) {
   const [state, setState] = useState(() => createInitialState(undefined, undefined, undefined, boardConfig));
+  const [spread, setSpread] = useState(() => defaultSpread(boardConfig.size)); // cuánto está abierto el cubo
 
   const handleCellClick = (index: number) => {
     setState((prev) => playMove(prev, index));
@@ -98,11 +101,13 @@ function AppLocal({ onExit, boardConfig }: { onExit: () => void; boardConfig: Bo
       <GameScene
         board={state.board}
         size={state.boardConfig.size}
+        spread={spread}
         players={state.players}
         winLine={winLine}
         gameActive={gameActive}
         onCellClick={handleCellClick}
       />
+      <CubeControls spread={spread} onChange={setSpread} />
       <HUD game={state} onReset={handleReset} onLeave={onExit} />
     </div>
   );
@@ -179,6 +184,7 @@ function AppInRoom({
     multiplayer;
   const { state, playerId, roomCode } = phase;
   const { t } = useI18n();
+  const [spread, setSpread] = useState(() => defaultSpread(state.game.boardConfig.size));
 
   const lastDistortionRef = useRef<number | null>(null);
   const [pickingCellFor, setPickingCellFor] = useState<AbilityId | null>(null);
@@ -265,6 +271,7 @@ function AppInRoom({
         <GameScene
           board={state.game.board}
           size={state.game.boardConfig.size}
+          spread={spread}
           players={state.game.players}
           winLine={winLine}
           gameActive={gameActive && isMyTurn}
@@ -272,6 +279,7 @@ function AppInRoom({
           cellSelectionMode={pickingCellFor ? { myPlayerId: playerId } : undefined}
         />
       </div>
+      <CubeControls spread={spread} onChange={setSpread} />
       <HUD
         game={state.game}
         onReset={resetGame}

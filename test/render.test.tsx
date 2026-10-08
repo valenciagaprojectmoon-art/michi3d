@@ -3,6 +3,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { I18nProvider } from "../src/i18n";
 import { LanguageSwitcher } from "../src/i18n/LanguageSwitcher";
+import { CubeControls } from "../src/components/CubeControls";
 import { Lobby } from "../src/components/Lobby";
 import { HUD } from "../src/components/HUD";
 import { ChatPanel } from "../src/components/ChatPanel";
@@ -47,6 +48,10 @@ ok(hudOver("en", [0]).includes("rematch: 1 of 2") && hudOver("es", [0]).includes
 ok(hudOver("en", [1]).includes("disabled"), "HUD: si ya votaste, el botón queda desactivado");
 ok(!hud("en").includes("rematch"), "HUD: sin partida terminada no hay revancha");
 ok(hudOver("en", []).includes("copy link") && hudOver("es", []).includes("copiar enlace"), "HUD: botón de copiar enlace de invitación");
+
+const cc = (lang: string, spread: number) => withLang(lang, <CubeControls spread={spread} onChange={() => {}} />);
+ok(cc("en", 0).includes("open cube") && cc("es", 0).includes("abrir cubo"), "deslizador de abrir cubo, en ambos idiomas");
+ok(cc("en", 0.5).includes('value="50"') && cc("en", 1).includes('value="100"'), "el deslizador refleja cuánto está abierto");
 
 const sw = withLang("en", <LanguageSwitcher />);
 ok(sw.includes("español") && sw.includes("english") && sw.includes('aria-label="language"'), "Selector de idioma: opciones y etiqueta accesible en inglés");

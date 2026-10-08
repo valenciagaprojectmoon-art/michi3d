@@ -1,10 +1,12 @@
 import { indexToCoord } from "../game/logic";
+import { SPACING, gridToWorld, spreadFactor } from "../game/cubeLayout";
 import type { Board, Player, WinLine } from "../game/logic";
 import { Cell } from "./Cell";
 
 interface Board3DProps {
   board: Board;
   size: number; // dimensión del cubo (casillas por lado)
+  spread: number; // 0 = cerrado, 1 = abierto del todo (casillas separadas para ver y pulsar las de dentro)
   players: Player[];
   winLine: WinLine | null;
   gameActive: boolean; // false cuando ya hay ganador o empate
@@ -18,15 +20,9 @@ interface Board3DProps {
   cellSelectionMode?: { myPlayerId: number };
 }
 
-const SPACING = 1.1; // distancia entre centros de casillas contiguas
-
-/** Coordenada de rejilla (0..size-1) a posición en el mundo, con el cubo centrado en el origen. */
-function gridToWorld(coord: number, size: number): number {
-  return (coord - (size - 1) / 2) * SPACING;
-}
-
-export function Board3D({ board, size, players, winLine, gameActive, onCellClick, cellSelectionMode }: Board3DProps) {
+export function Board3D({ board, size, spread, players, winLine, gameActive, onCellClick, cellSelectionMode }: Board3DProps) {
   const cells = [];
+  const factor = spreadFactor(spread);
   const cellCount = size * size * size;
   for (let i = 0; i < cellCount; i++) {
     const { x, y, z } = indexToCoord(i, size);
@@ -38,7 +34,7 @@ export function Board3D({ board, size, players, winLine, gameActive, onCellClick
     cells.push(
       <Cell
         key={i}
-        position={[gridToWorld(x, size), gridToWorld(y, size), gridToWorld(z, size)]}
+        position={[gridToWorld(x, size, factor), gridToWorld(y, size, factor), gridToWorld(z, size, factor)]}
         mark={board[i]}
         players={players}
         isWinningCell={isWinningCell}
@@ -53,7 +49,7 @@ export function Board3D({ board, size, players, winLine, gameActive, onCellClick
       {cells}
       {/* Wireframe contenedor: ayuda a percibir el cubo como un todo, no solo cubitos sueltos */}
       <mesh>
-        <boxGeometry args={[SPACING * size, SPACING * size, SPACING * size]} />
+        <boxGeometry args={[SPACING * size * factor, SPACING * size * factor, SPACING * size * factor]} />
         <meshBasicMaterial color="#4a5568" wireframe transparent opacity={0.25} />
       </mesh>
     </group>
