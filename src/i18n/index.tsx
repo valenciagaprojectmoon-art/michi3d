@@ -1,19 +1,21 @@
 import { createContext, createElement, Fragment, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { EN } from "./en";
+import { DE } from "./de";
 
 /** Idiomas disponibles. El español es el idioma base: sus textos son las claves de t(). */
-export type Lang = "es" | "en";
+export type Lang = "es" | "en" | "de";
 export const LANGUAGES: { code: Lang; label: string }[] = [
   { code: "es", label: "español" },
   { code: "en", label: "english" },
+  { code: "de", label: "deutsch" },
 ];
 
-const DICTIONARIES: Record<Exclude<Lang, "es">, Record<string, string>> = { en: EN };
+const DICTIONARIES: Record<Exclude<Lang, "es">, Record<string, string>> = { en: EN, de: DE };
 const STORAGE_KEY = "michi3d-lang";
 
 export function isLang(value: unknown): value is Lang {
-  return value === "es" || value === "en";
+  return value === "es" || value === "en" || value === "de";
 }
 
 /**
@@ -48,12 +50,14 @@ export function detectLang(): Lang {
     // localStorage puede no estar disponible (modo privado): se ignora.
   }
   const nav = typeof navigator !== "undefined" ? navigator.language : "es";
-  return nav.toLowerCase().startsWith("en") ? "en" : "es";
+  const code = nav.toLowerCase();
+  return code.startsWith("en") ? "en" : code.startsWith("de") ? "de" : "es";
 }
 
 /** Enlaces a las páginas legales en el idioma activo. */
 export function legalHref(lang: Lang, kind: "terms" | "privacy"): string {
   if (lang === "en") return kind === "terms" ? "/terms.html" : "/privacy.html";
+  if (lang === "de") return kind === "terms" ? "/nutzungsbedingungen.html" : "/datenschutz.html";
   return kind === "terms" ? "/terminos.html" : "/privacidad.html";
 }
 

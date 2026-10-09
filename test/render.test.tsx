@@ -24,6 +24,11 @@ ok(en.includes("create a new room") && en.includes("your name") && en.includes("
 ok(en.includes("i am at least 14 years old and i accept the") && en.includes(">terms of service</a>") && en.includes(">privacy policy</a>"), "Lobby en inglés: casilla de términos con enlaces traducidos");
 ok(!en.includes("Crear sala") && !en.includes("tu nombre") && !en.includes("Unirme"), "Lobby en inglés: no queda español visible");
 
+const de = withLang("de", lobby);
+ok(de.includes("neuen raum erstellen") && de.includes("dein name") && de.includes('href="/nutzungsbedingungen.html"') && de.includes('href="/datenschutz.html"'), "Lobby en alemán: textos y enlaces legales en alemán");
+ok(de.includes(">nutzungsbedingungen</a>") && !de.includes("crear sala"), "Lobby en alemán: casilla de términos traducida y sin español visible");
+ok(withLang("de", <LanguageSwitcher />).includes("deutsch") && withLang("de", <LanguageSwitcher />).includes('aria-label="sprache"'), "Selector de idioma incluye alemán");
+
 const game = createInitialState([
   { id: 0, name: "Ana", color: "#e63946", eliminated: false },
   { id: 1, name: "Beto", color: "#457b9d", eliminated: false },

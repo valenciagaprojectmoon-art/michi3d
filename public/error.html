@@ -14,7 +14,8 @@
   p { color: #aab1c3; margin: 8px 0; }
   .btn { display: inline-block; margin-top: 12px; padding: 10px 18px; border-radius: 8px; background: #7aa2f7; color: #14161e; font-weight: 600; text-decoration: none; }
   .lang { margin-top: 28px; font-size: 13px; }
-  .lang button { background: none; border: none; color: #7aa2f7; cursor: pointer; font: inherit; text-decoration: underline; padding: 0; }
+  .lang button { background: none; border: none; color: #7aa2f7; cursor: pointer; font: inherit; text-decoration: underline; padding: 0 4px; }
+  .lang button.on { color: #aab1c3; text-decoration: none; cursor: default; }
   .brand { margin-top: 28px; font-size: 13px; color: #6b7388; }
 </style>
 </head>
@@ -24,35 +25,28 @@
   <h1 id="title"></h1>
   <p id="text"></p>
   <p><a class="btn" id="back" href="/"></a></p>
-  <p class="lang"><button id="switch" type="button"></button></p>
+  <p class="lang" id="langs"></p>
   <p class="brand">michi 3d</p>
 </main>
 <script>
 (function () {
-  // Textos por código de error y idioma. Esta página sirve como 404 de Vercel y, con ?code=NNN, como página genérica 4XX.
-  var COPY = {
-    400: { es: ["Petición incorrecta", "No se pudo entender la petición. Revisa la dirección e inténtalo de nuevo."], en: ["Bad request", "The request could not be understood. Check the address and try again."] },
-    401: { es: ["No autorizado", "Necesitas iniciar sesión o tener permiso para ver esto."], en: ["Unauthorized", "You need to sign in or have permission to see this."] },
-    403: { es: ["Acceso prohibido", "No tienes permiso para acceder a esta página."], en: ["Forbidden", "You don't have permission to access this page."] },
-    404: { es: ["Página no encontrada", "Esta página no existe. A lo mejor el enlace está mal escrito."], en: ["Page not found", "This page doesn't exist. The link might be mistyped."] },
-    405: { es: ["Método no permitido", "Esta página no admite ese tipo de petición."], en: ["Method not allowed", "This page doesn't accept that kind of request."] },
-    408: { es: ["Tiempo de espera agotado", "La petición tardó demasiado. Inténtalo de nuevo."], en: ["Request timeout", "The request took too long. Please try again."] },
-    410: { es: ["Ya no existe", "Esta página fue eliminada y no volverá."], en: ["Gone", "This page was removed and won't be back."] },
-    413: { es: ["Petición demasiado grande", "Lo que enviaste es demasiado grande."], en: ["Payload too large", "What you sent is too large."] },
-    414: { es: ["Dirección demasiado larga", "La dirección que abriste es demasiado larga."], en: ["URI too long", "The address you opened is too long."] },
-    429: { es: ["Demasiadas peticiones", "Has hecho demasiadas peticiones seguidas. Espera un poco y vuelve a probar."], en: ["Too many requests", "You've made too many requests in a row. Give it a moment and try again."] }
-  };
-  var BACK = { es: "volver al juego", en: "back to the game" };
-  var SWITCH = { es: "english", en: "español" };
+  // Textos por código de error e idioma. Esta página sirve como 404 de Vercel y, con ?code=NNN, como página genérica 4XX.
+  var COPY = {"400": {"es": ["Petición incorrecta", "No se pudo entender la petición. Revisa la dirección e inténtalo de nuevo."], "en": ["Bad request", "The request could not be understood. Check the address and try again."], "de": ["Ungültige Anfrage", "Der Server hat nicht verstanden, was du geschickt hast. Prüf die Adresse und versuch es nochmal."]}, "401": {"es": ["No autorizado", "Necesitas iniciar sesión o tener permiso para ver esto."], "en": ["Unauthorized", "You need to sign in or have permission to see this."], "de": ["Nicht autorisiert", "Du brauchst einen gültigen Schlüssel, um das zu sehen."]}, "403": {"es": ["Acceso prohibido", "No tienes permiso para entrar aquí."], "en": ["Forbidden", "You don't have permission to get in here."], "de": ["Zugriff verboten", "Du darfst hier nicht rein."]}, "404": {"es": ["Página no encontrada", "Esta página no existe. A lo mejor el enlace está mal escrito."], "en": ["Page not found", "This page doesn't exist. The link might be mistyped."], "de": ["Seite nicht gefunden", "Diese Seite gibt es nicht. Vielleicht ist der Link falsch geschrieben."]}, "405": {"es": ["Método no permitido", "Esta página no admite ese tipo de petición."], "en": ["Method not allowed", "This page doesn't accept that kind of request."], "de": ["Methode nicht erlaubt", "Diese Adresse nimmt diese Art von Anfrage nicht an."]}, "408": {"es": ["Tiempo de espera agotado", "La petición tardó demasiado. Inténtalo de nuevo."], "en": ["Request timeout", "The request took too long. Please try again."], "de": ["Zeitüberschreitung", "Die Anfrage hat zu lange gebraucht. Versuch es nochmal."]}, "410": {"es": ["Ya no existe", "Esta página fue eliminada y no volverá."], "en": ["Gone", "This page was removed and won't be back."], "de": ["Weg", "Diese Seite wurde entfernt und kommt nicht wieder."]}, "413": {"es": ["Petición demasiado grande", "Lo que enviaste es demasiado grande."], "en": ["Payload too large", "What you sent is too large."], "de": ["Anfrage zu groß", "Was du geschickt hast, ist für den Server zu groß."]}, "414": {"es": ["Dirección demasiado larga", "La dirección que abriste es demasiado larga."], "en": ["URI too long", "The address you opened is too long."], "de": ["Adresse zu lang", "Die Adresse, die du geöffnet hast, ist zu lang."]}, "429": {"es": ["Demasiadas peticiones", "Has hecho demasiadas peticiones seguidas. Espera un poco y vuelve a probar."], "en": ["Too many requests", "You've made too many requests in a row. Give it a moment and try again."], "de": ["Zu viele Anfragen", "Du hast zu viele Anfragen hintereinander geschickt. Warte kurz und versuch es nochmal."]}};
+  var BACK = { es: "volver al juego", en: "back to the game", de: "zurück zum spiel" };
+  var NAMES = { es: "español", en: "english", de: "deutsch" };
 
   var q = new URLSearchParams(location.search);
   var code = parseInt(q.get("code") || "404", 10);
   if (!COPY[code]) code = 404;
 
-  // Mismo criterio que el juego: idioma guardado → idioma del navegador (en* = inglés) → español.
+  // Mismo criterio que el juego: idioma guardado, luego idioma del navegador, luego español.
   var lang = "es";
-  try { var saved = localStorage.getItem("michi3d-lang"); if (saved === "es" || saved === "en") lang = saved; else if ((navigator.language || "").toLowerCase().indexOf("en") === 0) lang = "en"; } catch (e) {}
-  var qlang = q.get("lang"); if (qlang === "es" || qlang === "en") lang = qlang;
+  try {
+    var saved = localStorage.getItem("michi3d-lang");
+    if (saved === "es" || saved === "en" || saved === "de") lang = saved;
+    else { var nav = (navigator.language || "").toLowerCase(); if (nav.indexOf("en") === 0) lang = "en"; else if (nav.indexOf("de") === 0) lang = "de"; }
+  } catch (e) {}
+  var qlang = q.get("lang"); if (qlang === "es" || qlang === "en" || qlang === "de") lang = qlang;
 
   function render() {
     var c = COPY[code][lang];
@@ -62,13 +56,17 @@
     document.getElementById("title").textContent = c[0].toLowerCase();
     document.getElementById("text").textContent = c[1].toLowerCase();
     document.getElementById("back").textContent = BACK[lang];
-    document.getElementById("switch").textContent = SWITCH[lang];
+    var box = document.getElementById("langs");
+    box.textContent = "";
+    ["es", "en", "de"].forEach(function (l, i) {
+      var b = document.createElement("button");
+      b.type = "button"; b.textContent = NAMES[l];
+      if (l === lang) b.className = "on";
+      else b.addEventListener("click", function () { lang = l; try { localStorage.setItem("michi3d-lang", l); } catch (e) {} render(); });
+      if (i > 0) box.appendChild(document.createTextNode(" · "));
+      box.appendChild(b);
+    });
   }
-  document.getElementById("switch").addEventListener("click", function () {
-    lang = lang === "es" ? "en" : "es";
-    try { localStorage.setItem("michi3d-lang", lang); } catch (e) {}
-    render();
-  });
   render();
 })();
 </script>
