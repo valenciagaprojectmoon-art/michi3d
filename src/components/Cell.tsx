@@ -8,6 +8,7 @@ interface CellProps {
   mark: number | null; // id del jugador dueño de la marca, o null
   players: Player[];
   isWinningCell: boolean;
+  isLastMove: boolean; // la casilla que acaba de cambiar: se marca con un marco y un brillo suave
   canPlay: boolean; // false si la partida terminó o la casilla está ocupada
   onClick: () => void;
 }
@@ -22,7 +23,7 @@ const EMPTY_HOVER_COLOR = "#3d4456";
  * - Ocupada: cubo sólido en el color del jugador, con su letra inicial encima.
  * - Ganadora: además se dibuja con emissive intensa para resaltarla.
  */
-export function Cell({ position, mark, players, isWinningCell, canPlay, onClick }: CellProps) {
+export function Cell({ position, mark, players, isWinningCell, isLastMove, canPlay, onClick }: CellProps) {
   const [hovered, setHovered] = useState(false);
   const player = mark !== null ? players.find((p) => p.id === mark) : undefined;
   const isEmpty = mark === null;
@@ -52,12 +53,18 @@ export function Cell({ position, mark, players, isWinningCell, canPlay, onClick 
           color={baseColor}
           transparent={isEmpty}
           opacity={isEmpty ? 0.35 : 1}
-          emissive={isWinningCell ? baseColor : "#000000"}
-          emissiveIntensity={isWinningCell ? 0.9 : 0}
+          emissive={isWinningCell || isLastMove ? baseColor : "#000000"}
+          emissiveIntensity={isWinningCell ? 0.9 : isLastMove ? 0.35 : 0}
           roughness={0.4}
           metalness={0.1}
         />
       </mesh>
+      {isLastMove && (
+        <mesh raycast={() => null}>
+          <boxGeometry args={[CELL_SIZE * 1.14, CELL_SIZE * 1.14, CELL_SIZE * 1.14]} />
+          <meshBasicMaterial color="#ffffff" wireframe transparent opacity={0.85} />
+        </mesh>
+      )}
       {player && (
         <Text
           position={[0, 0, CELL_SIZE / 2 + 0.02]}

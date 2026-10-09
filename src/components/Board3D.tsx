@@ -9,6 +9,7 @@ interface Board3DProps {
   spread: number; // 0 = cerrado, 1 = abierto del todo (casillas separadas para ver y pulsar las de dentro)
   players: Player[];
   winLine: WinLine | null;
+  lastMoveIndex: number | null; // casilla de la última jugada
   gameActive: boolean; // false cuando ya hay ganador o empate
   onCellClick: (index: number) => void;
   /**
@@ -20,7 +21,7 @@ interface Board3DProps {
   cellSelectionMode?: { myPlayerId: number };
 }
 
-export function Board3D({ board, size, spread, players, winLine, gameActive, onCellClick, cellSelectionMode }: Board3DProps) {
+export function Board3D({ board, size, spread, players, winLine, lastMoveIndex, gameActive, onCellClick, cellSelectionMode }: Board3DProps) {
   const cells = [];
   const factor = spreadFactor(spread);
   const cellCount = size * size * size;
@@ -38,6 +39,7 @@ export function Board3D({ board, size, spread, players, winLine, gameActive, onC
         mark={board[i]}
         players={players}
         isWinningCell={isWinningCell}
+        isLastMove={i === lastMoveIndex}
         canPlay={canPlay}
         onClick={() => onCellClick(i)}
       />

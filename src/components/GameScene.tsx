@@ -22,6 +22,7 @@ interface GameSceneProps {
   board: Board;
   size: number; // dimensión del cubo
   spread: number; // 0 = cerrado, 1 = abierto del todo
+  lastMoveIndex: number | null;
   players: Player[];
   winLine: WinLine | null;
   gameActive: boolean;
@@ -33,7 +34,7 @@ interface GameSceneProps {
  * Escena 3D pura: no sabe si el estado viene de una partida local o de red,
  * solo dibuja lo que recibe. Esto permite reusarla igual en ambos modos.
  */
-export function GameScene({ board, size, spread, players, winLine, gameActive, onCellClick, cellSelectionMode }: GameSceneProps) {
+export function GameScene({ board, size, spread, lastMoveIndex, players, winLine, gameActive, onCellClick, cellSelectionMode }: GameSceneProps) {
   // La cámara se aleja en proporción al cubo (la distancia base está pensada para 3x3x3).
   const factor = spreadFactor(spread);
   const scale = Math.max(0.8, size / 3);
@@ -48,6 +49,7 @@ export function GameScene({ board, size, spread, players, winLine, gameActive, o
         board={board}
         size={size}
         spread={spread}
+        lastMoveIndex={lastMoveIndex}
         players={players}
         winLine={winLine}
         gameActive={gameActive}

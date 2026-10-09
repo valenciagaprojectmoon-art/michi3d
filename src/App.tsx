@@ -102,6 +102,7 @@ function AppLocal({ onExit, boardConfig }: { onExit: () => void; boardConfig: Bo
         board={state.board}
         size={state.boardConfig.size}
         spread={spread}
+        lastMoveIndex={state.lastMoveIndex}
         players={state.players}
         winLine={winLine}
         gameActive={gameActive}
@@ -272,6 +273,7 @@ function AppInRoom({
           board={state.game.board}
           size={state.game.boardConfig.size}
           spread={spread}
+          lastMoveIndex={state.game.lastMoveIndex}
           players={state.game.players}
           winLine={winLine}
           gameActive={gameActive && isMyTurn}

@@ -356,6 +356,19 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
             )}
 
             <div style={styles.sectionTitle}>{t("Habilidades")}</div>
+            <div style={styles.presetRow}>
+              <span style={styles.presetLabel}>{t("Preajustes")}</span>
+              {[
+                { label: t("Ninguna"), abilities: [] as AbilityId[] },
+                { label: t("Tranquilo"), abilities: ["chicharron", "balanza", "reloj_roto", "brujula_mal_imantada"] as AbilityId[] },
+                { label: t("Solo vida"), abilities: ["chicharron", "balanza", "goyslop"] as AbilityId[] },
+                { label: t("Caos"), abilities: AVAILABLE_ABILITIES },
+              ].map((preset) => (
+                <button key={preset.label} type="button" style={styles.presetButton} onClick={() => setEnabledAbilities(new Set(preset.abilities))}>
+                  {preset.label}
+                </button>
+              ))}
+            </div>
             <div style={styles.abilityList}>
               {AVAILABLE_ABILITIES.map((ability) => (
                 <label key={ability} style={styles.abilityCheckboxRow}>
@@ -682,6 +695,17 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
 }
 
 const styles: Record<string, React.CSSProperties> = {
+  presetRow: { display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, marginBottom: 8 },
+  presetLabel: { fontSize: 12, color: "#8b93a7", marginRight: 2 },
+  presetButton: {
+    padding: "4px 10px",
+    borderRadius: 999,
+    border: "1px solid #333a4d",
+    background: "#1c2030",
+    color: "#d7dbe6",
+    fontSize: 12,
+    cursor: "pointer",
+  },
   abilityInfo: {
     display: "block",
     fontSize: 12,
