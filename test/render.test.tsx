@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { I18nProvider } from "../src/i18n";
 import { LanguageSwitcher } from "../src/i18n/LanguageSwitcher";
 import { CubeControls } from "../src/components/CubeControls";
+import { AuthBox } from "../src/components/AuthBox";
 import { Lobby } from "../src/components/Lobby";
 import { HUD } from "../src/components/HUD";
 import { ChatPanel } from "../src/components/ChatPanel";
@@ -57,6 +58,20 @@ ok(hudOver("en", []).includes("copy link") && hudOver("es", []).includes("copiar
 const cc = (lang: string, spread: number) => withLang(lang, <CubeControls spread={spread} onChange={() => {}} />);
 ok(cc("en", 0).includes("open cube") && cc("es", 0).includes("abrir cubo"), "deslizador de abrir cubo, en ambos idiomas");
 ok(cc("en", 0.5).includes('value="50"') && cc("en", 1).includes('value="100"'), "el deslizador refleja cuánto está abierto");
+
+const authBox = (lang: string, auth: any) => withLang(lang, <AuthBox auth={auth} onLogin={() => {}} onLogout={() => {}} onRetry={() => {}} />);
+const both = { phase: "ready", providers: { discord: true, google: true, required: true }, me: null, authError: null };
+ok(authBox("es", { phase: "loading" }).includes("comprobando sesión..."), "login: comprobando sesión");
+ok(authBox("es", both).includes("entrar con discord") && authBox("es", both).includes("entrar con google") && authBox("es", both).includes("inicia sesión para jugar online"), "login: sin sesión y obligatoria, botones de Discord y Google");
+ok(authBox("en", both).includes("sign in with discord") && authBox("de", both).includes("mit discord anmelden") && authBox("de", both).includes("mit google anmelden"), "login: botones en inglés y alemán");
+ok(!authBox("es", { ...both, providers: { discord: true, google: false, required: true } }).includes("google"), "login: solo muestra los proveedores configurados");
+ok(authBox("es", { ...both, providers: { discord: false, google: false, required: true } }) === "", "login: sin proveedores configurados no muestra nada");
+ok(authBox("es", { ...both, providers: { discord: true, google: true, required: false } }) === "", "login: si el servidor no la exige y no hay sesión, no molesta");
+ok(authBox("es", { ...both, me: { id: "1", displayName: "Ana", status: "approved" } }).includes("sesión iniciada como Ana") && authBox("es", { ...both, me: { id: "1", displayName: "Ana", status: "approved" } }).includes("cerrar sesión"), "login: con sesión muestra el nombre (con su mayúscula) y cerrar sesión");
+ok(authBox("es", { ...both, me: { id: "1", displayName: "Ana", status: "pending" } }).includes("pendiente de aprobación") && authBox("en", { ...both, me: { id: "1", displayName: "Ana", status: "pending" } }).includes("waiting for approval"), "login: cuenta pendiente avisa");
+ok(authBox("es", { ...both, me: { id: "1", displayName: "Ana", status: "banned" } }).includes("baneada") && authBox("de", { ...both, me: { id: "1", displayName: "Ana", status: "banned" } }).includes("gesperrt"), "login: cuenta baneada avisa");
+ok(authBox("es", { ...both, providers: null }).includes("reintentar") && authBox("en", { ...both, providers: null }).includes("try again"), "login: servidor sin respuesta ofrece reintentar");
+ok(authBox("es", { ...both, authError: "cancelled" }).includes("cancelaste") && authBox("es", { ...both, authError: "provider" }).includes("no se pudo iniciar sesión"), "login: errores al volver del proveedor");
 
 const sw = withLang("en", <LanguageSwitcher />);
 ok(sw.includes("español") && sw.includes("english") && sw.includes('aria-label="language"'), "Selector de idioma: opciones y etiqueta accesible en inglés");

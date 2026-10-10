@@ -142,6 +142,20 @@ export const EN: Record<string, string> = {
   "Solo vida": "Life only",
   "Caos": "Chaos",
 
+  // Inicio de sesión
+  "Comprobando sesión...": "Checking session...",
+  "Inicia sesión para jugar online": "Sign in to play online",
+  "Entrar con Discord": "Sign in with Discord",
+  "Entrar con Google": "Sign in with Google",
+  "Sesión iniciada como {name}": "Signed in as {name}",
+  "Cerrar sesión": "Sign out",
+  "Tu cuenta está pendiente de aprobación. Avisa al administrador para que te deje entrar.": "Your account is waiting for approval. Let the admin know so they can let you in.",
+  "Tu cuenta está baneada.": "Your account is banned.",
+  "No se pudo hablar con el servidor para comprobar tu sesión. Si estaba dormido, prueba otra vez en un minuto.": "Couldn't reach the server to check your session. If it was asleep, try again in a minute.",
+  "Reintentar": "Try again",
+  "Cancelaste el inicio de sesión.": "You cancelled the sign-in.",
+  "No se pudo iniciar sesión, prueba otra vez.": "Couldn't sign you in, try again.",
+
   // Cubo
   "Abrir cubo": "Open cube",
 

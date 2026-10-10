@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { translate, useI18n } from "../i18n";
 import { saveSession, clearSession } from "./session";
+import { getServerUrl } from "./serverUrl";
+import { loadToken } from "./auth";
 import type { ClientMessage, ServerMessage, PublicRoomState, ChatMessage } from "./protocol";
 import { TERMS_VERSION } from "./protocol";
 import type { TimerConfig, LifeConfig, BoardConfig } from "./logic";
@@ -53,24 +55,6 @@ interface UseMultiplayerResult {
   chatMessages: ChatMessage[]; // historial completo de chat de la sala actual
   lastNotice: string | null; // avisos efímeros: "X se desconectó", etc.
   lastEffects: ActiveEffect[] | null; // efectos que te acaban de aplicar a TI (ej. pantalla desorientada)
-}
-
-// Servidor de producción (Render). Se usa cuando el juego está publicado y nadie configuró VITE_SERVER_URL.
-const PRODUCTION_SERVER_URL = "wss://michi3d-server.onrender.com";
-
-/**
- * Dirección del WebSocket, por orden de prioridad:
- * 1. VITE_SERVER_URL, si está definida (en .env o en Vercel).
- * 2. localhost:8080 si la página se abrió desde tu propio ordenador (desarrollo).
- * 3. El servidor de producción, si la página está publicada (ej. en Vercel). Antes aquí también se usaba
- *    localhost, y por eso el modo online fallaba al jugar desde internet.
- */
-function getServerUrl(): string {
-  const configured = import.meta.env.VITE_SERVER_URL as string | undefined;
-  if (configured) return configured;
-  const host = window.location.hostname;
-  const isLocal = host === "localhost" || host === "127.0.0.1" || host === "[::1]" || host.endsWith(".local");
-  return isLocal ? "ws://localhost:8080" : PRODUCTION_SERVER_URL;
 }
 
 export function useMultiplayer(): UseMultiplayerResult {
@@ -186,6 +170,7 @@ export function useMultiplayer(): UseMultiplayerResult {
         abilitiesConfig: options.abilitiesConfig,
         shuffleConfig: options.shuffleConfig,
         boardConfig: options.boardConfig,
+        sessionToken: loadToken() ?? undefined,
         // El Lobby solo permite llamar aquí si el jugador marcó la casilla de aceptación.
         acceptedTerms: TERMS_VERSION,
         lang: langRef.current,
@@ -196,7 +181,14 @@ export function useMultiplayer(): UseMultiplayerResult {
 
   const joinRoom = useCallback(
     (roomCode: string, playerName: string) => {
-      connect({ type: "join_room", roomCode: roomCode.toUpperCase(), playerName, acceptedTerms: TERMS_VERSION, lang: langRef.current });
+      connect({
+      type: "join_room",
+      roomCode: roomCode.toUpperCase(),
+      playerName,
+      acceptedTerms: TERMS_VERSION,
+      lang: langRef.current,
+      sessionToken: loadToken() ?? undefined,
+    });
     },
     [connect]
   );

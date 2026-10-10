@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useI18n, legalHref } from "../i18n";
 import { ABILITY_INFO } from "../game/abilityInfo";
+import { useAuth } from "../hooks/useAuth";
+import { AuthBox } from "./AuthBox";
 import type { ChangeEvent } from "react";
 import type { TimerConfig, TimeoutAction, LifeConfig, BoardConfig } from "../game/logic";
 import { normalizeBoardConfig, MIN_BOARD_SIZE, MAX_BOARD_SIZE, MIN_LINE_LENGTH } from "../game/logic";
@@ -67,6 +69,7 @@ function inviteCodeFromUrl(): string {
 
 export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, connecting }: LobbyProps) {
   const { t, tx, lang } = useI18n();
+  const auth = useAuth();
   const [name, setName] = useState("");
   // Si se abrió un enlace de invitación (?sala=ABCD), arrancamos directo en "unirme" con el código puesto.
   const inviteCode = inviteCodeFromUrl();
@@ -107,8 +110,14 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
   const [handSize, setHandSize] = useState(2); // X
   const [noConsumeUsesPerTurn, setNoConsumeUsesPerTurn] = useState(1); // Z
 
+  // Si ya iniciaste sesión, el campo de nombre arranca con el nombre de tu cuenta (puedes cambiarlo).
+  const accountName = auth.state.phase === "ready" ? auth.state.me?.displayName : undefined;
+  useEffect(() => {
+    if (accountName) setName((current) => current || accountName);
+  }, [accountName]);
+
   const trimmedName = name.trim();
-  const canSubmit = trimmedName.length > 0 && !connecting && acceptedTerms;
+  const canSubmit = trimmedName.length > 0 && !connecting && acceptedTerms && auth.canPlayOnline;
 
   const buildTimerConfig = (): TimerConfig => {
     if (timeMode === "none") return { mode: "none" };
@@ -175,6 +184,8 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
         <h1 style={styles.title}>michi 3d</h1>
         <p style={styles.subtitle}>{t("Tres en raya en un cubo 3×3×3")}</p>
 
+        <AuthBox auth={auth.state} onLogin={auth.login} onLogout={auth.logout} onRetry={auth.retry} />
+
         <label style={styles.label}>
           {t("Tu nombre")}
           <input
@@ -225,8 +236,8 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
               {t("Crear sala nueva")}
             </button>
             <button
-              style={{ ...styles.secondaryButton, opacity: trimmedName && acceptedTerms ? 1 : 0.5 }}
-              disabled={!trimmedName || !acceptedTerms}
+              style={{ ...styles.secondaryButton, opacity: trimmedName && acceptedTerms && auth.canPlayOnline ? 1 : 0.5 }}
+              disabled={!trimmedName || !acceptedTerms || !auth.canPlayOnline}
               onClick={() => setMode("join")}
             >
               {t("Unirme con un código")}

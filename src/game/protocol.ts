@@ -32,8 +32,9 @@ export type ClientMessage =
       acceptedTerms: string; // versión de ToS/Privacidad aceptada (debe ser TERMS_VERSION)
       lang?: Lang; // idioma de los mensajes del servidor para este jugador (por defecto español)
       boardConfig?: BoardConfig; // dimensión del cubo y de la línea (por defecto 3 y 3; el servidor la valida)
+      sessionToken?: string; // sesión del inicio de sesión con Discord/Google (obligatoria si el servidor lo exige)
     }
-  | { type: "join_room"; roomCode: string; playerName: string; acceptedTerms: string; lang?: Lang }
+  | { type: "join_room"; roomCode: string; playerName: string; acceptedTerms: string; lang?: Lang; sessionToken?: string }
   | { type: "rematch" } // pide revancha; cuando todos los conectados la piden, se reinicia la partida
   | { type: "set_language"; lang: Lang } // cambia el idioma de los mensajes del servidor durante la sesión
   | { type: "play_move"; index: number }

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>cuentas | michi 3d</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #14161e; color: #d7dbe6; font: 15px/1.5 system-ui, -apple-system, sans-serif; padding: 20px; }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; color: #fff; }
+  h2 { font-size: 16px; margin: 24px 0 8px; color: #fff; }
+  p, small { color: #8b93a7; }
+  input { padding: 8px 10px; border-radius: 8px; border: 1px solid #333a4d; background: #1c2030; color: #d7dbe6; font: inherit; }
+  button { padding: 6px 12px; border-radius: 8px; border: 1px solid #4a5270; background: #242a40; color: #d7dbe6; cursor: pointer; font: inherit; }
+  button.danger { border-color: #7a3b3b; color: #f5a97f; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .card { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid #333a4d; border-radius: 10px; margin-bottom: 8px; background: #1a1d29; }
+  .name { color: #fff; } .meta { font-size: 12px; color: #8b93a7; }
+  #msg { margin-top: 10px; min-height: 1.4em; color: #f5a97f; }
+</style>
+</head>
+<body>
+<main>
+  <h1>cuentas</h1>
+  <p>aprueba a quien quieres que juegue y banea a quien no. un baneo es por cuenta, no por ip.</p>
+  <div class="row">
+    <input id="server" size="34" value="https://michi3d-server.onrender.com" aria-label="servidor" />
+    <input id="key" type="password" placeholder="clave de administrador" aria-label="clave de administrador" />
+    <button id="load" type="button">cargar</button>
+  </div>
+  <div id="msg"></div>
+  <h2>pendientes</h2><div id="pending"></div>
+  <h2>aprobadas</h2><div id="approved"></div>
+  <h2>baneadas</h2><div id="banned"></div>
+  <p><small>la clave solo se guarda en esta pestaña. si no ves nada, el servidor gratuito puede estar despertando: espera un minuto y vuelve a pulsar cargar.</small></p>
+</main>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  try { $("key").value = sessionStorage.getItem("michi3d-admin-key") || ""; } catch (e) {}
+  function api(path, method) {
+    var base = $("server").value.replace(/\/+$/, "");
+    return fetch(base + path, { method: method || "GET", headers: { Authorization: "Bearer " + $("key").value } });
+  }
+  function say(t) { $("msg").textContent = t || ""; }
+  function card(u, buttons) {
+    var div = document.createElement("div"); div.className = "card";
+    var left = document.createElement("div");
+    var n = document.createElement("div"); n.className = "name"; n.textContent = u.displayName;
+    var m = document.createElement("div"); m.className = "meta";
+    m.textContent = u.provider + " · última vez " + new Date(u.lastLoginAt).toLocaleString() + (u.banReason ? " · motivo: " + u.banReason : "");
+    left.appendChild(n); left.appendChild(m); div.appendChild(left);
+    var right = document.createElement("div"); right.className = "row";
+    buttons.forEach(function (b) { var el = document.createElement("button"); el.textContent = b.text; if (b.danger) el.className = "danger"; el.addEventListener("click", b.run); right.appendChild(el); });
+    div.appendChild(right); return div;
+  }
+  async function act(id, action, query) {
+    say("");
+    var r = await api("/admin/users/" + id + "/" + action + (query || ""), "POST");
+    if (!r.ok) say("no se pudo (" + r.status + ")"); else load();
+  }
+  async function fill(status, box, makeButtons) {
+    var r = await api("/admin/users?status=" + status + "&limit=200");
+    if (r.status === 401) throw new Error("clave incorrecta");
+    if (!r.ok) throw new Error("error " + r.status);
+    var list = await r.json(); box.textContent = "";
+    if (!list.length) { var p = document.createElement("p"); p.textContent = "nadie"; box.appendChild(p); }
+    list.forEach(function (u) { box.appendChild(card(u, makeButtons(u))); });
+  }
+  async function load() {
+    try { sessionStorage.setItem("michi3d-admin-key", $("key").value); } catch (e) {}
+    say("cargando...");
+    try {
+      await fill("pending", $("pending"), function (u) { return [{ text: "aprobar", run: function () { act(u.id, "approve"); } }, { text: "rechazar", danger: true, run: function () { act(u.id, "ban", "?reason=" + encodeURIComponent("rechazada")); } }]; });
+      await fill("approved", $("approved"), function (u) { return [{ text: "banear", danger: true, run: function () { var why = prompt("motivo del baneo (opcional)", "") ; if (why !== null) act(u.id, "ban", "?reason=" + encodeURIComponent(why)); } }]; });
+      await fill("banned", $("banned"), function (u) { return [{ text: "desbanear", run: function () { act(u.id, "unban"); } }]; });
+      say("");
+    } catch (e) { say(e.message === "clave incorrecta" ? "clave incorrecta" : "no se pudo conectar con el servidor"); }
+  }
+  $("load").addEventListener("click", load);
+  if ($("key").value) load();
+})();
+</script>
+</body>
+</html>
