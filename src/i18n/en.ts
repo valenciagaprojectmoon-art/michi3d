@@ -144,6 +144,7 @@ export const EN: Record<string, string> = {
 
   // Inicio de sesión
   "Comprobando sesión...": "Checking session...",
+  "Entra con tu cuenta (opcional)": "Sign in with your account (optional)",
   "Inicia sesión para jugar online": "Sign in to play online",
   "Entrar con Discord": "Sign in with Discord",
   "Entrar con Google": "Sign in with Google",

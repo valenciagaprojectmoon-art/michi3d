@@ -48,6 +48,7 @@ export const DE: Record<string, string> = {
   "Código de sala": "Raumcode",
   "Unirme": "Beitreten",
   "Comprobando sesión...": "Prüfe Sitzung...",
+  "Entra con tu cuenta (opcional)": "Melde dich mit deinem Konto an (optional)",
   "Inicia sesión para jugar online": "Melde dich an, um online zu spielen",
   "Entrar con Discord": "Mit Discord anmelden",
   "Entrar con Google": "Mit Google anmelden",

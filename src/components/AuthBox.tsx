@@ -44,13 +44,13 @@ export function AuthBox({ auth, onLogin, onLogout, onRetry }: AuthBoxProps) {
     );
   }
 
-  // Sin sesión. Si el servidor no la exige, no molestamos.
-  if (!providers.required) return errorText ? <div style={styles.box}><div style={styles.warn}>{errorText}</div></div> : null;
+  // Sin sesión y sin ningún proveedor configurado: nada que mostrar.
   if (!providers.discord && !providers.google) return null;
 
   return (
     <div style={styles.box}>
-      <div>{t("Inicia sesión para jugar online")}</div>
+      {/* Si el servidor no la exige, entrar con cuenta es opcional: se puede jugar de invitado. */}
+      <div>{providers.required ? t("Inicia sesión para jugar online") : t("Entra con tu cuenta (opcional)")}</div>
       {errorText && <div style={styles.warn}>{errorText}</div>}
       <div style={styles.row}>
         {providers.discord && (

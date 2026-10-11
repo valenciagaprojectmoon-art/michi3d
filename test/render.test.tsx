@@ -66,7 +66,10 @@ ok(authBox("es", both).includes("entrar con discord") && authBox("es", both).inc
 ok(authBox("en", both).includes("sign in with discord") && authBox("de", both).includes("mit discord anmelden") && authBox("de", both).includes("mit google anmelden"), "login: botones en inglés y alemán");
 ok(!authBox("es", { ...both, providers: { discord: true, google: false, required: true } }).includes("google"), "login: solo muestra los proveedores configurados");
 ok(authBox("es", { ...both, providers: { discord: false, google: false, required: true } }) === "", "login: sin proveedores configurados no muestra nada");
-ok(authBox("es", { ...both, providers: { discord: true, google: true, required: false } }) === "", "login: si el servidor no la exige y no hay sesión, no molesta");
+const optional = { ...both, providers: { discord: true, google: true, required: false } };
+ok(authBox("es", optional).includes("entra con tu cuenta (opcional)") && authBox("es", optional).includes("entrar con google") && !authBox("es", optional).includes("inicia sesión para jugar online"), "login opcional: ofrece entrar con cuenta, pero no lo exige");
+ok(authBox("en", optional).includes("sign in with your account (optional)") && authBox("de", optional).includes("(optional)"), "login opcional: textos en inglés y alemán");
+ok(authBox("es", { ...optional, providers: { discord: false, google: false, required: false } }) === "", "login opcional sin proveedores configurados: no muestra nada");
 ok(authBox("es", { ...both, me: { id: "1", displayName: "Ana", status: "approved" } }).includes("sesión iniciada como Ana") && authBox("es", { ...both, me: { id: "1", displayName: "Ana", status: "approved" } }).includes("cerrar sesión"), "login: con sesión muestra el nombre (con su mayúscula) y cerrar sesión");
 ok(authBox("es", { ...both, me: { id: "1", displayName: "Ana", status: "pending" } }).includes("pendiente de aprobación") && authBox("en", { ...both, me: { id: "1", displayName: "Ana", status: "pending" } }).includes("waiting for approval"), "login: cuenta pendiente avisa");
 ok(authBox("es", { ...both, me: { id: "1", displayName: "Ana", status: "banned" } }).includes("baneada") && authBox("de", { ...both, me: { id: "1", displayName: "Ana", status: "banned" } }).includes("gesperrt"), "login: cuenta baneada avisa");
