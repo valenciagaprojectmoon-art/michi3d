@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useI18n, legalHref } from "../i18n";
 import { ABILITY_INFO } from "../game/abilityInfo";
+import { PRESET_ABILITIES, randomAbilities } from "../game/presets";
 import { useAuth } from "../hooks/useAuth";
 import { AuthBox } from "./AuthBox";
 import type { ChangeEvent } from "react";
@@ -370,12 +371,17 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
             <div style={styles.presetRow}>
               <span style={styles.presetLabel}>{t("Preajustes")}</span>
               {[
-                { label: t("Ninguna"), abilities: [] as AbilityId[] },
-                { label: t("Tranquilo"), abilities: ["chicharron", "balanza", "reloj_roto", "brujula_mal_imantada"] as AbilityId[] },
-                { label: t("Solo vida"), abilities: ["chicharron", "balanza", "goyslop"] as AbilityId[] },
-                { label: t("Caos"), abilities: AVAILABLE_ABILITIES },
+                { label: t("Ninguna"), pick: () => PRESET_ABILITIES.ninguna },
+                { label: t("Tranquilo"), pick: () => PRESET_ABILITIES.tranquilo },
+                { label: t("Solo vida"), pick: () => PRESET_ABILITIES.solo_vida },
+                { label: t("Estrategia"), pick: () => PRESET_ABILITIES.estrategia },
+                { label: t("Sabotaje"), pick: () => PRESET_ABILITIES.sabotaje },
+                { label: t("Presión"), pick: () => PRESET_ABILITIES.presion },
+                { label: t("Bromas"), pick: () => PRESET_ABILITIES.bromas },
+                { label: t("Sorpresa"), pick: () => randomAbilities(AVAILABLE_ABILITIES) },
+                { label: t("Caos"), pick: () => AVAILABLE_ABILITIES },
               ].map((preset) => (
-                <button key={preset.label} type="button" style={styles.presetButton} onClick={() => setEnabledAbilities(new Set(preset.abilities))}>
+                <button key={preset.label} type="button" style={styles.presetButton} onClick={() => setEnabledAbilities(new Set(preset.pick()))}>
                   {preset.label}
                 </button>
               ))}

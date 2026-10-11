@@ -88,7 +88,7 @@ export const EN: Record<string, string> = {
   "¿Cuántos turnos quieres retroceder con {ability}?": "How many turns do you want to go back with {ability}?",
   "¿A quién le pasas la {ability}?": "Who do you pass the {ability} to?",
   "Elige un objetivo para {ability}": "Choose a target for {ability}",
-  "🥔 La Papa Caliente la tiene {who} · turnos sostenida: {turns}": "🥔 {who} has the Hot Potato · turns held: {turns}",
+  "🥔 La Papa Caliente la tiene {who}, turnos sostenida: {turns}": "🥔 {who} has the Hot Potato, turns held: {turns}",
   "TI": "YOU",
   "⚛️ ¡Acelerador ACTIVO! −{damage} de vida por cada {seconds}s que tardes en jugar":
     "⚛️ Accelerator ACTIVE! −{damage} life for every {seconds}s you take to play",
@@ -105,7 +105,7 @@ export const EN: Record<string, string> = {
   "Ya votaste para activar el Acelerador": "You already voted to activate the Accelerator",
   "Usar habilidad (consume tu turno)": "Use ability (consumes your turn)",
   "Usar habilidad (no consume tu turno, te queda al menos 1 uso gratis)": "Use ability (doesn't consume your turn, you have at least 1 free use left)",
-  " · gratis": " · free",
+  " (gratis)": " (free)",
 
   // HUD
   "Sala": "Room",
@@ -120,7 +120,7 @@ export const EN: Record<string, string> = {
   "¡Ganó {name}, los demás quedaron eliminados 💔": "{name} wins, everyone else was eliminated 💔",
   "Empate: el tablero se llenó 🤝": "Draw: the board is full 🤝",
   "El creador de la sala terminó la partida ⏹": "The room creator ended the game ⏹",
-  "Arrastra para rotar la cámara · Clic en una casilla para jugar": "Drag to rotate the camera · Click a cell to play",
+  "Arrastra para rotar la cámara, clic en una casilla para jugar": "Drag to rotate the camera, click a cell to play",
 
 
   // Descripciones de habilidades
@@ -141,6 +141,11 @@ export const EN: Record<string, string> = {
   "Tranquilo": "Calm",
   "Solo vida": "Life only",
   "Caos": "Chaos",
+  "Estrategia": "Strategy",
+  "Sabotaje": "Sabotage",
+  "Presión": "Pressure",
+  "Bromas": "Pranks",
+  "Sorpresa": "Surprise",
 
   // Inicio de sesión
   "Comprobando sesión...": "Checking session...",

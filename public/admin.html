@@ -50,7 +50,7 @@
     var left = document.createElement("div");
     var n = document.createElement("div"); n.className = "name"; n.textContent = u.displayName;
     var m = document.createElement("div"); m.className = "meta";
-    m.textContent = u.provider + " · última vez " + new Date(u.lastLoginAt).toLocaleString() + (u.banReason ? " · motivo: " + u.banReason : "");
+    m.textContent = u.provider + ", última vez " + new Date(u.lastLoginAt).toLocaleString() + (u.banReason ? ", motivo: " + u.banReason : "");
     left.appendChild(n); left.appendChild(m); div.appendChild(left);
     var right = document.createElement("div"); right.className = "row";
     buttons.forEach(function (b) { var el = document.createElement("button"); el.textContent = b.text; if (b.danger) el.className = "danger"; el.addEventListener("click", b.run); right.appendChild(el); });

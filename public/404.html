@@ -63,7 +63,7 @@
       b.type = "button"; b.textContent = NAMES[l];
       if (l === lang) b.className = "on";
       else b.addEventListener("click", function () { lang = l; try { localStorage.setItem("michi3d-lang", l); } catch (e) {} render(); });
-      if (i > 0) box.appendChild(document.createTextNode(" · "));
+      if (i > 0) box.appendChild(document.createTextNode(" | "));
       box.appendChild(b);
     });
   }

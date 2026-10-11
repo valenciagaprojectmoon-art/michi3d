@@ -182,7 +182,7 @@ export function HUD({
         <LifeBars players={players} currentLife={currentLife} maxLife={maxLife} />
       </div>
 
-      <div style={styles.hint}>{t("Arrastra para rotar la cámara · Clic en una casilla para jugar")}</div>
+      <div style={styles.hint}>{t("Arrastra para rotar la cámara, clic en una casilla para jugar")}</div>
     </div>
   );
 }

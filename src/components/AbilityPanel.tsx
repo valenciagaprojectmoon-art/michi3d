@@ -283,7 +283,7 @@ export function AbilityPanel({
         <div style={styles.abilityButtons}>
           {holderName && (
             <div style={styles.zCounter}>
-              {t("🥔 La Papa Caliente la tiene {who} · turnos sostenida: {turns}", { who: papaCaliente.holderId === myPlayerId ? t("TI") : (holderName ?? ""), turns: papaCaliente.turnsHeld })}
+              {t("🥔 La Papa Caliente la tiene {who}, turnos sostenida: {turns}", { who: papaCaliente.holderId === myPlayerId ? t("TI") : (holderName ?? ""), turns: papaCaliente.turnsHeld })}
             </div>
           )}
           {aceleradorParams && (
@@ -338,7 +338,7 @@ export function AbilityPanel({
                       : t("Usar habilidad (no consume tu turno, te queda al menos 1 uso gratis)"))}
               >
                 {t(label)}
-                {shuffle && !willConsume && <span style={styles.freeTag}>{t(" · gratis")}</span>}
+                {shuffle && !willConsume && <span style={styles.freeTag}>{t(" (gratis)")}</span>}
               </button>
             );
           })}
