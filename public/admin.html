@@ -4,83 +4,194 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex" />
-<title>cuentas | michi 3d</title>
+<title>panel | michi 3d</title>
 <style>
   :root { color-scheme: dark; }
   body { margin: 0; background: #14161e; color: #d7dbe6; font: 15px/1.5 system-ui, -apple-system, sans-serif; padding: 20px; }
-  main { max-width: 760px; margin: 0 auto; }
+  main { max-width: 820px; margin: 0 auto; }
   h1 { font-size: 22px; margin: 0 0 4px; color: #fff; }
-  h2 { font-size: 16px; margin: 24px 0 8px; color: #fff; }
+  h2 { font-size: 16px; margin: 26px 0 8px; color: #fff; }
   p, small { color: #8b93a7; }
   input { padding: 8px 10px; border-radius: 8px; border: 1px solid #333a4d; background: #1c2030; color: #d7dbe6; font: inherit; }
   button { padding: 6px 12px; border-radius: 8px; border: 1px solid #4a5270; background: #242a40; color: #d7dbe6; cursor: pointer; font: inherit; }
   button.danger { border-color: #7a3b3b; color: #f5a97f; }
+  button.small { padding: 2px 8px; font-size: 12px; }
   .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   .card { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid #333a4d; border-radius: 10px; margin-bottom: 8px; background: #1a1d29; }
   .name { color: #fff; } .meta { font-size: 12px; color: #8b93a7; }
   #msg { margin-top: 10px; min-height: 1.4em; color: #f5a97f; }
+  #chat { border: 1px solid #4a5270; border-radius: 10px; padding: 12px; margin-top: 12px; background: #181b27; }
+  .line { display: flex; gap: 8px; align-items: baseline; padding: 3px 0; border-bottom: 1px solid #232838; word-break: break-word; }
+  .time { color: #6b7388; font-size: 12px; flex-shrink: 0; }
+  .who { color: #fff; flex-shrink: 0; }
+  .acct { color: #8b93a7; font-size: 12px; flex-shrink: 0; }
+  .held { color: #f5a97f; }
+  .hidden { display: none; }
 </style>
 </head>
 <body>
 <main>
-  <h1>cuentas</h1>
-  <p>aprueba a quien quieres que juegue y banea a quien no. un baneo es por cuenta, no por ip.</p>
+  <h1>panel</h1>
+  <p>cuentas, reportes y chats. un baneo es por cuenta, no por ip.</p>
   <div class="row">
     <input id="server" size="34" value="https://michi3d-server.onrender.com" aria-label="servidor" />
     <input id="key" type="password" placeholder="clave de administrador" aria-label="clave de administrador" />
     <button id="load" type="button">cargar</button>
   </div>
   <div id="msg"></div>
-  <h2>pendientes</h2><div id="pending"></div>
-  <h2>aprobadas</h2><div id="approved"></div>
-  <h2>baneadas</h2><div id="banned"></div>
-  <p><small>la clave solo se guarda en esta pestaña. si no ves nada, el servidor gratuito puede estar despertando: espera un minuto y vuelve a pulsar cargar.</small></p>
+
+  <div id="chat" class="hidden">
+    <div class="row" style="justify-content: space-between">
+      <strong id="chatTitle"></strong>
+      <span class="row">
+        <button id="chatDelete" class="danger small" type="button">borrar este chat</button>
+        <button id="chatClose" class="small" type="button">cerrar</button>
+      </span>
+    </div>
+    <div id="chatLines"></div>
+  </div>
+
+  <h2>reportes</h2><div id="reports"></div>
+  <h2>salas con chat</h2><div id="rooms"></div>
+  <h2>cuentas pendientes</h2><div id="pending"></div>
+  <h2>cuentas aprobadas</h2><div id="approved"></div>
+  <h2>cuentas baneadas</h2><div id="banned"></div>
+  <p><small>la clave solo se guarda en esta pestaña. si no ves nada, el servidor gratuito puede estar despertando: espera un minuto y vuelve a pulsar cargar. los chats se borran solos a los 30 días, y a los 180 los de salas con reportes.</small></p>
 </main>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
+  var users = {};
+  var openRoom = null;
   try { $("key").value = sessionStorage.getItem("michi3d-admin-key") || ""; } catch (e) {}
+
   function api(path, method) {
     var base = $("server").value.replace(/\/+$/, "");
     return fetch(base + path, { method: method || "GET", headers: { Authorization: "Bearer " + $("key").value } });
   }
   function say(t) { $("msg").textContent = t || ""; }
-  function card(u, buttons) {
-    var div = document.createElement("div"); div.className = "card";
-    var left = document.createElement("div");
-    var n = document.createElement("div"); n.className = "name"; n.textContent = u.displayName;
-    var m = document.createElement("div"); m.className = "meta";
-    m.textContent = u.provider + ", última vez " + new Date(u.lastLoginAt).toLocaleString() + (u.banReason ? ", motivo: " + u.banReason : "");
-    left.appendChild(n); left.appendChild(m); div.appendChild(left);
-    var right = document.createElement("div"); right.className = "row";
-    buttons.forEach(function (b) { var el = document.createElement("button"); el.textContent = b.text; if (b.danger) el.className = "danger"; el.addEventListener("click", b.run); right.appendChild(el); });
-    div.appendChild(right); return div;
+  async function getJson(path) {
+    var r = await api(path);
+    if (r.status === 401) throw new Error("clave incorrecta");
+    if (!r.ok) throw new Error("error " + r.status);
+    return r.json();
   }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+  function button(text, run, cls) { var b = el("button", cls || "", text); b.type = "button"; b.addEventListener("click", run); return b; }
+  function when(ms) { return new Date(ms).toLocaleString(); }
+  function acct(id) { var u = id && users[id]; return u ? "cuenta: " + u.displayName + " (" + u.provider + ")" : "invitado"; }
+  function empty(box) { box.textContent = ""; var p = el("p", "", "nada"); box.appendChild(p); }
+
   async function act(id, action, query) {
     say("");
     var r = await api("/admin/users/" + id + "/" + action + (query || ""), "POST");
-    if (!r.ok) say("no se pudo (" + r.status + ")"); else load();
+    if (!r.ok) say("no se pudo (" + r.status + ")"); else loadAll();
   }
-  async function fill(status, box, makeButtons) {
-    var r = await api("/admin/users?status=" + status + "&limit=200");
-    if (r.status === 401) throw new Error("clave incorrecta");
-    if (!r.ok) throw new Error("error " + r.status);
-    var list = await r.json(); box.textContent = "";
-    if (!list.length) { var p = document.createElement("p"); p.textContent = "nadie"; box.appendChild(p); }
-    list.forEach(function (u) { box.appendChild(card(u, makeButtons(u))); });
+  function banAccount(id) {
+    var why = prompt("motivo del baneo (opcional)", "");
+    if (why !== null) act(id, "ban", "?reason=" + encodeURIComponent(why));
   }
-  async function load() {
+
+  function accountCard(u, buttons) {
+    var div = el("div", "card"), left = el("div");
+    left.appendChild(el("div", "name", u.displayName));
+    left.appendChild(el("div", "meta", u.provider + ", última vez " + when(u.lastLoginAt) + (u.banReason ? ", motivo: " + u.banReason : "")));
+    div.appendChild(left);
+    var right = el("div", "row"); buttons.forEach(function (b) { right.appendChild(b); }); div.appendChild(right);
+    return div;
+  }
+  function fillAccounts(list) {
+    var groups = { pending: [], approved: [], banned: [] };
+    list.forEach(function (u) { if (groups[u.status]) groups[u.status].push(u); });
+    [["pending", "pending"], ["approved", "approved"], ["banned", "banned"]].forEach(function (pair) {
+      var box = $(pair[0]); box.textContent = "";
+      if (!groups[pair[1]].length) return empty(box);
+      groups[pair[1]].forEach(function (u) {
+        var btns = pair[0] === "pending"
+          ? [button("aprobar", function () { act(u.id, "approve"); }), button("rechazar", function () { act(u.id, "ban", "?reason=" + encodeURIComponent("rechazada")); }, "danger")]
+          : pair[0] === "approved" ? [button("banear", function () { banAccount(u.id); }, "danger")]
+          : [button("desbanear", function () { act(u.id, "unban"); })];
+        box.appendChild(accountCard(u, btns));
+      });
+    });
+  }
+
+  function fillReports(list) {
+    var box = $("reports"); box.textContent = "";
+    if (!list.length) return empty(box);
+    list.forEach(function (r) {
+      var div = el("div", "card"), left = el("div");
+      left.appendChild(el("div", "name", r.reportedPlayerName + " (" + acct(r.reportedUserId) + ")"));
+      left.appendChild(el("div", "", "\"" + r.messageText + "\""));
+      left.appendChild(el("div", "meta", "reportado por " + r.reporterName + " (" + acct(r.reporterUserId) + "), " + when(r.createdAt) + ", motivo: " + r.reason));
+      div.appendChild(left);
+      var right = el("div", "row");
+      right.appendChild(button("ver chat", function () { showRoom(r.roomId, r.roomCode); }));
+      var u = r.reportedUserId && users[r.reportedUserId];
+      if (u && u.status !== "banned") right.appendChild(button("banear cuenta", function () { banAccount(u.id); }, "danger"));
+      div.appendChild(right); box.appendChild(div);
+    });
+  }
+
+  function fillRooms(list) {
+    var box = $("rooms"); box.textContent = "";
+    if (!list.length) return empty(box);
+    list.forEach(function (r) {
+      var div = el("div", "card"), left = el("div");
+      left.appendChild(el("div", "name", "sala " + r.roomCode));
+      var m = el("div", "meta", r.messages + " mensajes, último " + when(r.lastAt) + (r.held ? ", " : ""));
+      if (r.held) m.appendChild(el("span", "held", "con reportes (se conserva más tiempo)"));
+      left.appendChild(m); div.appendChild(left);
+      div.appendChild(button("ver chat", function () { showRoom(r.roomId, r.roomCode); }));
+      box.appendChild(div);
+    });
+  }
+
+  async function showRoom(roomId, roomCode) {
+    say("cargando chat...");
+    try {
+      var msgs = await getJson("/admin/chat/room/" + encodeURIComponent(roomId) + "?limit=2000");
+      openRoom = roomId; say("");
+      $("chatTitle").textContent = "chat de la sala " + roomCode + " (" + msgs.length + " mensajes)";
+      var box = $("chatLines"); box.textContent = "";
+      if (!msgs.length) empty(box);
+      msgs.forEach(function (m) {
+        var line = el("div", "line");
+        line.appendChild(el("span", "time", new Date(m.sentAt).toLocaleTimeString()));
+        line.appendChild(el("span", "who", m.playerName));
+        line.appendChild(el("span", "acct", acct(m.userId)));
+        line.appendChild(el("span", "", m.text));
+        var u = m.userId && users[m.userId];
+        if (u && u.status !== "banned") line.appendChild(button("banear", function () { banAccount(u.id); }, "danger small"));
+        box.appendChild(line);
+      });
+      $("chat").classList.remove("hidden"); $("chat").scrollIntoView({ behavior: "smooth" });
+    } catch (e) { say("no se pudo abrir el chat"); }
+  }
+
+  async function loadAll() {
     try { sessionStorage.setItem("michi3d-admin-key", $("key").value); } catch (e) {}
     say("cargando...");
     try {
-      await fill("pending", $("pending"), function (u) { return [{ text: "aprobar", run: function () { act(u.id, "approve"); } }, { text: "rechazar", danger: true, run: function () { act(u.id, "ban", "?reason=" + encodeURIComponent("rechazada")); } }]; });
-      await fill("approved", $("approved"), function (u) { return [{ text: "banear", danger: true, run: function () { var why = prompt("motivo del baneo (opcional)", "") ; if (why !== null) act(u.id, "ban", "?reason=" + encodeURIComponent(why)); } }]; });
-      await fill("banned", $("banned"), function (u) { return [{ text: "desbanear", run: function () { act(u.id, "unban"); } }]; });
+      var list = await getJson("/admin/users?limit=500");
+      users = {}; list.forEach(function (u) { users[u.id] = u; });
+      fillAccounts(list);
+      fillReports(await getJson("/admin/chat/reports?limit=100"));
+      fillRooms(await getJson("/admin/chat/rooms?limit=100"));
       say("");
+      if (openRoom && !$("chat").classList.contains("hidden")) showRoom(openRoom, $("chatTitle").textContent.split(" ")[3] || "");
     } catch (e) { say(e.message === "clave incorrecta" ? "clave incorrecta" : "no se pudo conectar con el servidor"); }
   }
-  $("load").addEventListener("click", load);
-  if ($("key").value) load();
+
+  $("load").addEventListener("click", loadAll);
+  $("chatClose").addEventListener("click", function () { $("chat").classList.add("hidden"); openRoom = null; });
+  $("chatDelete").addEventListener("click", async function () {
+    if (!openRoom || !confirm("¿borrar este chat y sus reportes para siempre?")) return;
+    var r = await api("/admin/chat/room/" + encodeURIComponent(openRoom), "DELETE");
+    if (!r.ok) return say("no se pudo borrar (" + r.status + ")");
+    $("chat").classList.add("hidden"); openRoom = null; loadAll();
+  });
+  if ($("key").value) loadAll();
 })();
 </script>
 </body>
