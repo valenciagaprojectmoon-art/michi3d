@@ -1,11 +1,12 @@
 import { indexToCoord } from "../game/logic";
-import { SPACING, gridToWorld, spreadFactor } from "../game/cubeLayout";
+import { SPACING, cellPosition, slicePositions, spreadFactor } from "../game/cubeLayout";
 import type { Board, Player, WinLine } from "../game/logic";
 import { Cell } from "./Cell";
 
 interface Board3DProps {
   board: Board;
-  size: number; // dimensión del cubo (casillas por lado)
+  size: number; // casillas por lado
+  dimensions: number; // 3 = cubo, 4 = hipercubo (size cubos, uno por cada valor de la cuarta coordenada)
   spread: number; // 0 = cerrado, 1 = abierto del todo (casillas separadas para ver y pulsar las de dentro)
   players: Player[];
   winLine: WinLine | null;
@@ -21,12 +22,12 @@ interface Board3DProps {
   cellSelectionMode?: { myPlayerId: number };
 }
 
-export function Board3D({ board, size, spread, players, winLine, lastMoveIndex, gameActive, onCellClick, cellSelectionMode }: Board3DProps) {
+export function Board3D({ board, size, dimensions, spread, players, winLine, lastMoveIndex, gameActive, onCellClick, cellSelectionMode }: Board3DProps) {
   const cells = [];
   const factor = spreadFactor(spread);
-  const cellCount = size * size * size;
+  const cellCount = size ** dimensions;
   for (let i = 0; i < cellCount; i++) {
-    const { x, y, z } = indexToCoord(i, size);
+    const coord = indexToCoord(i, size);
     const isWinningCell = winLine !== null && winLine.includes(i);
     const canPlay = cellSelectionMode
       ? board[i] !== null && board[i] !== cellSelectionMode.myPlayerId
@@ -35,7 +36,7 @@ export function Board3D({ board, size, spread, players, winLine, lastMoveIndex, 
     cells.push(
       <Cell
         key={i}
-        position={[gridToWorld(x, size, factor), gridToWorld(y, size, factor), gridToWorld(z, size, factor)]}
+        position={cellPosition(coord, size, dimensions, factor)}
         mark={board[i]}
         players={players}
         isWinningCell={isWinningCell}
@@ -50,10 +51,12 @@ export function Board3D({ board, size, spread, players, winLine, lastMoveIndex, 
     <group>
       {cells}
       {/* Wireframe contenedor: ayuda a percibir el cubo como un todo, no solo cubitos sueltos */}
-      <mesh>
-        <boxGeometry args={[SPACING * size * factor, SPACING * size * factor, SPACING * size * factor]} />
-        <meshBasicMaterial color="#4a5568" wireframe transparent opacity={0.25} />
-      </mesh>
+      {slicePositions(size, dimensions, factor).map((center, w) => (
+        <mesh key={w} position={center}>
+          <boxGeometry args={[SPACING * size * factor, SPACING * size * factor, SPACING * size * factor]} />
+          <meshBasicMaterial color="#4a5568" wireframe transparent opacity={0.25} />
+        </mesh>
+      ))}
     </group>
   );
 }

@@ -6,7 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 import { AuthBox } from "./AuthBox";
 import type { ChangeEvent } from "react";
 import type { TimerConfig, TimeoutAction, LifeConfig, BoardConfig } from "../game/logic";
-import { normalizeBoardConfig, MIN_BOARD_SIZE, MAX_BOARD_SIZE, MIN_LINE_LENGTH } from "../game/logic";
+import { normalizeBoardConfig, maxBoardSize, MIN_BOARD_SIZE, MIN_LINE_LENGTH } from "../game/logic";
 import type { AbilitiesConfig, AbilityId, ShuffleConfig } from "../game/abilities";
 
 interface LobbyProps {
@@ -92,7 +92,8 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
   const [goyslopCuracion, setGoyslopCuracion] = useState(4);
   const [goyslopPerdidaMaxima, setGoyslopPerdidaMaxima] = useState(2);
   const [globoDivergencia, setGloboDivergencia] = useState(5);
-  const [boardSize, setBoardSize] = useState(3); // dimensión del cubo (por defecto 3)
+  const [dimensions, setDimensions] = useState<3 | 4>(3); // 3D (cubo) o 4D (hipercubo)
+  const [boardSize, setBoardSize] = useState(3); // casillas por lado (por defecto 3)
   const [lineLength, setLineLength] = useState(3); // dimensión de línea (por defecto 3)
   const [acceptedTerms, setAcceptedTerms] = useState(false); // obligatorio para jugar ONLINE (el modo local no lo necesita)
   const [brujulaMaxTurnosAtras, setBrujulaMaxTurnosAtras] = useState(2);
@@ -175,15 +176,15 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
       lifeConfig: buildLifeConfig(),
       abilitiesConfig: buildAbilitiesConfig(),
       shuffleConfig: buildShuffleConfig(),
-      boardConfig: normalizeBoardConfig({ size: boardSize, lineLength }),
+      boardConfig: normalizeBoardConfig({ size: boardSize, lineLength, dimensions }),
     });
   };
 
   return (
     <div style={styles.overlay}>
       <div style={styles.card}>
-        <h1 style={styles.title}>michi 3d</h1>
-        <p style={styles.subtitle}>{t("Tres en raya en un cubo 3×3×3")}</p>
+        <h1 style={styles.title}>michi súper-bidimensional</h1>
+        <p style={styles.subtitle}>{t("Tres en raya en 3D y 4D")}</p>
 
         <AuthBox auth={auth.state} onLogin={auth.login} onLogout={auth.logout} onRetry={auth.retry} />
 
@@ -243,7 +244,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
             >
               {t("Unirme con un código")}
             </button>
-            <button style={styles.textButton} onClick={() => onPlayLocal(normalizeBoardConfig({ size: boardSize, lineLength }))}>
+            <button style={styles.textButton} onClick={() => onPlayLocal(normalizeBoardConfig({ size: boardSize, lineLength, dimensions }))}>
               {t("Jugar en este dispositivo (sin internet)")}
             </button>
           </div>
@@ -251,14 +252,36 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
 
         {mode === "configure" && (
           <div style={styles.buttonColumn}>
-            <div style={styles.sectionTitle}>{t("Cubo")}</div>
+            <div style={styles.sectionTitle}>{t("Tablero")}</div>
+            <div style={styles.label}>
+              {t("Dimensiones")}
+              <div style={styles.presetRow}>
+                {([3, 4] as const).map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    style={{ ...styles.presetButton, ...(dimensions === d ? styles.presetButtonOn : {}) }}
+                    aria-pressed={dimensions === d}
+                    onClick={() => {
+                      // Un hipercubo crece muy rápido: al pasar a 4D el tamaño se recorta a su máximo (y la línea con él).
+                      const next = normalizeBoardConfig({ size: boardSize, lineLength, dimensions: d });
+                      setDimensions(d);
+                      setBoardSize(next.size);
+                      setLineLength(next.lineLength);
+                    }}
+                  >
+                    {d}D
+                  </button>
+                ))}
+              </div>
+            </div>
             <label style={styles.label}>
               {t("Dimensión del cubo")}
               <input
                 style={styles.input}
                 type="number"
                 min={MIN_BOARD_SIZE}
-                max={MAX_BOARD_SIZE}
+                max={maxBoardSize(dimensions)}
                 value={boardSize}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => {
                   // Al cambiar el cubo, la línea se recorta si ya no cabe (nunca puede ser mayor que el cubo).
@@ -277,17 +300,23 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                 max={boardSize}
                 value={lineLength}
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setLineLength(normalizeBoardConfig({ size: boardSize, lineLength: parseInt(e.target.value, 10) }).lineLength)
+                  setLineLength(normalizeBoardConfig({ size: boardSize, lineLength: parseInt(e.target.value, 10), dimensions }).lineLength)
                 }
               />
             </label>
             <div style={styles.hint}>
-              {t("Cubo de {size}×{size}×{size}: {cells} casillas. Gana quien junte {line} en línea recta.", {
-                size: boardSize,
-                cells: boardSize ** 3,
-                line: lineLength,
-              })}{" "}
-              {t("Mínimo {min}, máximo {max}. La línea no puede ser mayor que el cubo.", { min: MIN_BOARD_SIZE, max: MAX_BOARD_SIZE })}
+              {dimensions === 4
+                ? t("Hipercubo de {size}×{size}×{size}×{size}: {cells} casillas, repartidas en {size} cubos. Gana quien junte {line} en línea recta, también de un cubo a otro.", {
+                    size: boardSize,
+                    cells: boardSize ** 4,
+                    line: lineLength,
+                  })
+                : t("Cubo de {size}×{size}×{size}: {cells} casillas. Gana quien junte {line} en línea recta.", {
+                    size: boardSize,
+                    cells: boardSize ** 3,
+                    line: lineLength,
+                  })}{" "}
+              {t("Mínimo {min}, máximo {max}. La línea no puede ser mayor que el cubo.", { min: MIN_BOARD_SIZE, max: maxBoardSize(dimensions) })}
             </div>
 
             <div style={styles.sectionTitle}>{t("Vida")}</div>
@@ -714,6 +743,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
 const styles: Record<string, React.CSSProperties> = {
   presetRow: { display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, marginBottom: 8 },
   presetLabel: { fontSize: 12, color: "#8b93a7", marginRight: 2 },
+  presetButtonOn: { background: "#3b4a7a", borderColor: "#7aa2f7" },
   presetButton: {
     padding: "4px 10px",
     borderRadius: 999,

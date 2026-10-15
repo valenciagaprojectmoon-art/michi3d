@@ -3,7 +3,7 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import type { Board, Player, WinLine } from "../game/logic";
 import { Board3D } from "./Board3D";
-import { spreadFactor } from "../game/cubeLayout";
+import { spreadFactor, sceneExtent } from "../game/cubeLayout";
 
 /** Al abrir o cerrar el cubo, acerca o aleja la cámara en la misma proporción para que siga entrando entero. */
 function CameraFit({ factor }: { factor: number }) {
@@ -20,7 +20,8 @@ function CameraFit({ factor }: { factor: number }) {
 
 interface GameSceneProps {
   board: Board;
-  size: number; // dimensión del cubo
+  size: number; // casillas por lado
+  dimensions: number; // 3 o 4
   spread: number; // 0 = cerrado, 1 = abierto del todo
   lastMoveIndex: number | null;
   players: Player[];
@@ -34,12 +35,12 @@ interface GameSceneProps {
  * Escena 3D pura: no sabe si el estado viene de una partida local o de red,
  * solo dibuja lo que recibe. Esto permite reusarla igual en ambos modos.
  */
-export function GameScene({ board, size, spread, lastMoveIndex, players, winLine, gameActive, onCellClick, cellSelectionMode }: GameSceneProps) {
+export function GameScene({ board, size, dimensions, spread, lastMoveIndex, players, winLine, gameActive, onCellClick, cellSelectionMode }: GameSceneProps) {
   // La cámara se aleja en proporción al cubo (la distancia base está pensada para 3x3x3).
   const factor = spreadFactor(spread);
-  const scale = Math.max(0.8, size / 3);
+  const scale = Math.max(0.8, sceneExtent(size, dimensions) / 3);
   return (
-    <Canvas key={size} camera={{ position: [5 * scale * factor, 4 * scale * factor, 6 * scale * factor], fov: 45 }}>
+    <Canvas key={`${dimensions}-${size}`} camera={{ position: [5 * scale * factor, 4 * scale * factor, 6 * scale * factor], fov: 45 }}>
       <CameraFit factor={factor} />
       <ambientLight intensity={0.6} />
       <directionalLight position={[5, 8, 5]} intensity={1} />
@@ -48,6 +49,7 @@ export function GameScene({ board, size, spread, lastMoveIndex, players, winLine
       <Board3D
         board={board}
         size={size}
+        dimensions={dimensions}
         spread={spread}
         lastMoveIndex={lastMoveIndex}
         players={players}

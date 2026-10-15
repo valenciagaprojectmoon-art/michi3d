@@ -78,7 +78,7 @@ export function HUD({
   return (
     <div style={styles.container}>
       <div style={styles.topRow}>
-        <h1 style={styles.title}>michi 3d</h1>
+        <h1 style={styles.title}>michi súper-bidimensional</h1>
         <div style={styles.topRightGroup}>
           {roomCode && (
             <div style={styles.roomCodeBadge}>

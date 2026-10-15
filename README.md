@@ -1,4 +1,4 @@
-# Michi 3D
+# Michi Súper-Bidimensional
 
 Tres en raya en un cubo 3×3×3. React + TypeScript + Three.js (`@react-three/fiber`).
 
@@ -29,7 +29,7 @@ npm install
 npm run dev
 ```
 
-Va a decir `Servidor Michi 3D escuchando en el puerto 8080`.
+Va a decir `Servidor Michi Súper-Bidimensional escuchando en el puerto 8080`.
 
 ### 2. Correr el frontend apuntando a ese servidor local
 

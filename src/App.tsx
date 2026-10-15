@@ -101,6 +101,7 @@ function AppLocal({ onExit, boardConfig }: { onExit: () => void; boardConfig: Bo
       <GameScene
         board={state.board}
         size={state.boardConfig.size}
+        dimensions={state.boardConfig.dimensions}
         spread={spread}
         lastMoveIndex={state.lastMoveIndex}
         players={state.players}
@@ -272,6 +273,7 @@ function AppInRoom({
         <GameScene
           board={state.game.board}
           size={state.game.boardConfig.size}
+          dimensions={state.game.boardConfig.dimensions}
           spread={spread}
           lastMoveIndex={state.game.lastMoveIndex}
           players={state.game.players}

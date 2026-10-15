@@ -1,4 +1,5 @@
-import { SPACING, clampSpread, spreadFactor, gridToWorld, defaultSpread } from "../src/game/cubeLayout";
+import { SPACING, clampSpread, spreadFactor, gridToWorld, defaultSpread, cellPosition, slicePositions, sliceGrid, sceneExtent } from "../src/game/cubeLayout";
+import { indexToCoord } from "../src/game/logic";
 let fails = 0;
 const ok = (c: boolean, m: string) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fails++; };
 const near = (a: number, b: number) => Math.abs(a - b) < 1e-9;
@@ -26,4 +27,26 @@ for (const size of [2, 3, 4, 6]) {
   for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) min = Math.min(min, Math.hypot(pts[i][0] - pts[j][0], pts[i][1] - pts[j][1], pts[i][2] - pts[j][2]));
   ok(near(min, SPACING * f) && min > 0.85 * 2, `cubo 4 abierto: la distancia mínima entre casillas es ${min.toFixed(2)}, mucho mayor que lo que mide una casilla`);
 }
+// ---------- 4D: size cubos repartidos en cuadrícula ----------
+ok(JSON.stringify([sliceGrid(2), sliceGrid(3), sliceGrid(4)]) === JSON.stringify([{ cols: 2, rows: 1 }, { cols: 2, rows: 2 }, { cols: 2, rows: 2 }]), "4D: 2 cubos en fila, 3 y 4 en cuadrícula de 2x2");
+for (const size of [2, 3, 4]) for (const spread of [0, 1]) {
+  const f = spreadFactor(spread), N = size ** 4, pts: number[][] = [];
+  for (let i = 0; i < N; i++) pts.push(cellPosition(indexToCoord(i, size), size, 4, f));
+  const key = (p: number[]) => p.map((v) => v.toFixed(6)).join(",");
+  ok(new Set(pts.map(key)).size === N, `4D tamaño ${size}, abierto ${spread}: las ${N} casillas tienen posiciones distintas`);
+  let min = Infinity; for (let a = 0; a < N; a++) for (let b = a + 1; b < N; b++) min = Math.min(min, Math.hypot(pts[a][0] - pts[b][0], pts[a][1] - pts[b][1], pts[a][2] - pts[b][2]));
+  ok(min >= SPACING * f - 1e-9 && min > 0.85, `4D tamaño ${size}, abierto ${spread}: ninguna casilla se solapa (distancia mínima ${min.toFixed(2)})`);
+  const slices = slicePositions(size, 4, f);
+  ok(slices.length === size, `4D tamaño ${size}: ${size} marcos de rodaja`);
+  // el marco que envuelve toda la escena (de la casilla más lejana a la opuesta) queda centrado: con 3 rodajas en 2x2 hay un hueco y el centro de masas no cuenta
+  const mid = [0, 1, 2].map((k) => (Math.min(...pts.map((p) => p[k])) + Math.max(...pts.map((p) => p[k]))) / 2);
+  ok(mid.every((v) => Math.abs(v) < 1e-6), `4D tamaño ${size}, abierto ${spread}: la escena entera queda centrada en el origen`);
+  // los cubos no se montan unos sobre otros
+  for (let a = 0; a < slices.length; a++) for (let b = a + 1; b < slices.length; b++) ok(Math.hypot(slices[a][0] - slices[b][0], slices[a][1] - slices[b][1]) > SPACING * size * f, `4D tamaño ${size}, abierto ${spread}: las rodajas ${a} y ${b} no se solapan`);
+}
+// una línea ganadora a lo largo de la cuarta dimensión une casillas de cubos distintos, en el mismo sitio dentro de cada cubo
+{ const a = cellPosition({ x: 1, y: 1, z: 1, w: 0 }, 3, 4), b = cellPosition({ x: 1, y: 1, z: 1, w: 1 }, 3, 4);
+  ok(a[2] === b[2] && (a[0] !== b[0] || a[1] !== b[1]), "4D: misma casilla en rodajas distintas queda a la misma altura pero en otro cubo"); }
+ok(JSON.stringify(cellPosition({ x: 0, y: 0, z: 0, w: 0 }, 3, 3)) === JSON.stringify([gridToWorld(0, 3), gridToWorld(0, 3), gridToWorld(0, 3)]), "3D: la posición es la de siempre");
+ok(sceneExtent(3, 3) === 3 && sceneExtent(4, 4) > sceneExtent(4, 3) && sceneExtent(2, 4) > 2, "la escena en 4D es más grande que en 3D (la cámara se aleja)");
 console.log(fails === 0 ? "\nLAYOUT OK" : `\n${fails} FALLO(S)`); process.exit(fails ? 1 : 0);

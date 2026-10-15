@@ -9,7 +9,7 @@
  */
 export const EN: Record<string, string> = {
   // Lobby
-  "Tres en raya en un cubo 3×3×3": "Tic-tac-toe in a 3×3×3 cube",
+  "Tres en raya en 3D y 4D": "Tic-tac-toe in 3D and 4D",
   "Tu nombre": "Your name",
   "Ej: Ana": "e.g. Ana",
   "Tengo al menos 14 años y acepto los {terms} y la {privacy}, incluido el registro del chat de la sala para moderación. (Solo para jugar online.)":
@@ -19,7 +19,9 @@ export const EN: Record<string, string> = {
   "Crear sala nueva": "Create a new room",
   "Unirme con un código": "Join with a code",
   "Jugar en este dispositivo (sin internet)": "Play on this device (offline)",
-  "Cubo": "Cube",
+  "Tablero": "Board",
+  "Dimensiones": "Dimensions",
+  "Hipercubo de {size}×{size}×{size}×{size}: {cells} casillas, repartidas en {size} cubos. Gana quien junte {line} en línea recta, también de un cubo a otro.": "{size}×{size}×{size}×{size} hypercube: {cells} cells, split into {size} cubes. Whoever gets {line} in a straight line wins, including from one cube to another.",
   "Dimensión del cubo": "Cube dimension",
   "Dimensión de línea": "Line dimension",
   "Cubo de {size}×{size}×{size}: {cells} casillas. Gana quien junte {line} en línea recta.":

@@ -1,6 +1,6 @@
 /** Deutsche Übersetzungen, immer im Du-Stil (informelle Anrede). Der Schlüssel ist der spanische Originaltext, wie in en.ts. */
 export const DE: Record<string, string> = {
-  "Tres en raya en un cubo 3×3×3": "Drei gewinnt in einem 3×3×3-Würfel",
+  "Tres en raya en 3D y 4D": "Drei gewinnt in 3D und 4D",
   "Tu nombre": "Dein Name",
   "Ej: Ana": "z. B. Ana",
   "Tengo al menos 14 años y acepto los {terms} y la {privacy}, incluido el registro del chat de la sala para moderación. (Solo para jugar online.)": "Ich bin mindestens 14 Jahre alt und akzeptiere die {terms} und die {privacy}, einschließlich der Aufzeichnung des Raumchats zur Moderation. (Nur für Online-Spiele.)",
@@ -70,7 +70,9 @@ export const DE: Record<string, string> = {
   "Presión": "Druck",
   "Bromas": "Streiche",
   "Sorpresa": "Überraschung",
-  "Cubo": "Würfel",
+  "Tablero": "Brett",
+  "Dimensiones": "Dimensionen",
+  "Hipercubo de {size}×{size}×{size}×{size}: {cells} casillas, repartidas en {size} cubos. Gana quien junte {line} en línea recta, también de un cubo a otro.": "{size}×{size}×{size}×{size}-Hyperwürfel: {cells} Felder, verteilt auf {size} Würfel. Es gewinnt, wer {line} in einer geraden Linie hat, auch von einem Würfel zum anderen.",
   "Dimensión del cubo": "Würfelgröße",
   "Dimensión de línea": "Linienlänge",
   "Cubo de {size}×{size}×{size}: {cells} casillas. Gana quien junte {line} en línea recta.": "{size}×{size}×{size}-Würfel: {cells} Felder. Es gewinnt, wer {line} in einer geraden Linie hat.",
