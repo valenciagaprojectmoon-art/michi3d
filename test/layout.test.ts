@@ -28,8 +28,8 @@ for (const size of [2, 3, 4, 6]) {
   ok(near(min, SPACING * f) && min > 0.85 * 2, `cubo 4 abierto: la distancia mínima entre casillas es ${min.toFixed(2)}, mucho mayor que lo que mide una casilla`);
 }
 // ---------- 4D: size cubos repartidos en cuadrícula ----------
-ok(JSON.stringify([sliceGrid(2), sliceGrid(3), sliceGrid(4)]) === JSON.stringify([{ cols: 2, rows: 1 }, { cols: 2, rows: 2 }, { cols: 2, rows: 2 }]), "4D: 2 cubos en fila, 3 y 4 en cuadrícula de 2x2");
-for (const size of [2, 3, 4]) for (const spread of [0, 1]) {
+ok(JSON.stringify([2, 3, 4, 5, 6].map(sliceGrid)) === JSON.stringify([{ cols: 2, rows: 1 }, { cols: 2, rows: 2 }, { cols: 2, rows: 2 }, { cols: 3, rows: 2 }, { cols: 3, rows: 2 }]), "4D: 2 cubos en fila, 3 y 4 en 2x2, 5 y 6 en 3x2");
+for (const size of [2, 3, 4, 5, 6]) for (const spread of [0, 1]) {
   const f = spreadFactor(spread), N = size ** 4, pts: number[][] = [];
   for (let i = 0; i < N; i++) pts.push(cellPosition(indexToCoord(i, size), size, 4, f));
   const key = (p: number[]) => p.map((v) => v.toFixed(6)).join(",");

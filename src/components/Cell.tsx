@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BoxGeometry } from "three";
 import { Text } from "@react-three/drei";
 import type { ThreeEvent } from "@react-three/fiber";
 import type { Player } from "../game/logic";
@@ -23,6 +24,11 @@ const EMPTY_HOVER_COLOR = "#3d4456";
  * - Ocupada: cubo sólido en el color del jugador, con su letra inicial encima.
  * - Ganadora: además se dibuja con emissive intensa para resaltarla.
  */
+// Todas las casillas comparten las mismas geometrías: con un hipercubo de 6 son 1296 casillas y crear una por casilla
+// gastaba memoria y tiempo de arranque para nada.
+const CELL_BOX = new BoxGeometry(CELL_SIZE, CELL_SIZE, CELL_SIZE);
+const LAST_MOVE_BOX = new BoxGeometry(CELL_SIZE * 1.14, CELL_SIZE * 1.14, CELL_SIZE * 1.14);
+
 export function Cell({ position, mark, players, isWinningCell, isLastMove, canPlay, onClick }: CellProps) {
   const [hovered, setHovered] = useState(false);
   const player = mark !== null ? players.find((p) => p.id === mark) : undefined;
@@ -48,7 +54,7 @@ export function Cell({ position, mark, players, isWinningCell, isLastMove, canPl
           setHovered(false);
         }}
       >
-        <boxGeometry args={[CELL_SIZE, CELL_SIZE, CELL_SIZE]} />
+        <primitive object={CELL_BOX} attach="geometry" />
         <meshStandardMaterial
           color={baseColor}
           transparent={isEmpty}
@@ -61,7 +67,7 @@ export function Cell({ position, mark, players, isWinningCell, isLastMove, canPl
       </mesh>
       {isLastMove && (
         <mesh raycast={() => null}>
-          <boxGeometry args={[CELL_SIZE * 1.14, CELL_SIZE * 1.14, CELL_SIZE * 1.14]} />
+          <primitive object={LAST_MOVE_BOX} attach="geometry" />
           <meshBasicMaterial color="#ffffff" wireframe transparent opacity={0.85} />
         </mesh>
       )}
