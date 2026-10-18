@@ -6,7 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 import { AuthBox } from "./AuthBox";
 import type { ChangeEvent } from "react";
 import type { TimerConfig, TimeoutAction, LifeConfig, BoardConfig } from "../game/logic";
-import { normalizeBoardConfig, maxBoardSize, MIN_BOARD_SIZE, MIN_LINE_LENGTH } from "../game/logic";
+import { normalizeBoardConfig, maxBoardSize, fractalCellsPerLevel, fractalDimension, MIN_BOARD_SIZE, MIN_LINE_LENGTH } from "../game/logic";
 import type { AbilitiesConfig, AbilityId, ShuffleConfig } from "../game/abilities";
 
 interface LobbyProps {
@@ -93,6 +93,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
   const [goyslopPerdidaMaxima, setGoyslopPerdidaMaxima] = useState(2);
   const [globoDivergencia, setGloboDivergencia] = useState(5);
   const [dimensions, setDimensions] = useState<3 | 4>(3); // 3D (cubo) o 4D (hipercubo)
+  const [fractalLevel, setFractalLevel] = useState<0 | 1 | 2>(0); // 0 = tablero normal, 1 o 2 = esponja fractal con huecos
   const [boardSize, setBoardSize] = useState(3); // casillas por lado (por defecto 3)
   const [lineLength, setLineLength] = useState(3); // dimensión de línea (por defecto 3)
   const [acceptedTerms, setAcceptedTerms] = useState(false); // obligatorio para jugar ONLINE (el modo local no lo necesita)
@@ -176,7 +177,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
       lifeConfig: buildLifeConfig(),
       abilitiesConfig: buildAbilitiesConfig(),
       shuffleConfig: buildShuffleConfig(),
-      boardConfig: normalizeBoardConfig({ size: boardSize, lineLength, dimensions }),
+      boardConfig: normalizeBoardConfig({ size: boardSize, lineLength, dimensions, fractalLevel }),
     });
   };
 
@@ -244,7 +245,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
             >
               {t("Unirme con un código")}
             </button>
-            <button style={styles.textButton} onClick={() => onPlayLocal(normalizeBoardConfig({ size: boardSize, lineLength, dimensions }))}>
+            <button style={styles.textButton} onClick={() => onPlayLocal(normalizeBoardConfig({ size: boardSize, lineLength, dimensions, fractalLevel }))}>
               {t("Jugar en este dispositivo (sin internet)")}
             </button>
           </div>
@@ -264,15 +265,41 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                     aria-pressed={dimensions === d}
                     onClick={() => {
                       // Un hipercubo crece muy rápido: al pasar a 4D el tamaño se recorta a su máximo (y la línea con él).
-                      const next = normalizeBoardConfig({ size: boardSize, lineLength, dimensions: d });
+                      const next = normalizeBoardConfig({ size: boardSize, lineLength, dimensions: d, fractalLevel });
                       setDimensions(d);
                       setBoardSize(next.size);
                       setLineLength(next.lineLength);
+                      setFractalLevel(next.fractalLevel); // el nivel 2 no existe en 4D: baja a 1
                     }}
                   >
                     {d}D
                   </button>
                 ))}
+              </div>
+            </div>
+            <div style={styles.label}>
+              {t("Fractal")}
+              <div style={styles.presetRow}>
+                {([0, 1, 2] as const).map((level) => {
+                  const unavailable = level === 2 && dimensions === 4; // 5184 casillas: demasiadas para dibujarlas
+                  return (
+                    <button
+                      key={level}
+                      type="button"
+                      disabled={unavailable}
+                      style={{ ...styles.presetButton, ...(fractalLevel === level ? styles.presetButtonOn : {}), opacity: unavailable ? 0.4 : 1 }}
+                      aria-pressed={fractalLevel === level}
+                      onClick={() => {
+                        const next = normalizeBoardConfig({ size: boardSize, lineLength, dimensions, fractalLevel: level });
+                        setFractalLevel(next.fractalLevel);
+                        setBoardSize(next.size); // en un fractal el tamaño lo manda el nivel (3 o 9)
+                        setLineLength(next.lineLength);
+                      }}
+                    >
+                      {level === 0 ? t("Sin fractal") : t("Nivel {n}", { n: level })}
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <label style={styles.label}>
@@ -282,6 +309,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                 type="number"
                 min={MIN_BOARD_SIZE}
                 max={maxBoardSize(dimensions)}
+                disabled={fractalLevel > 0}
                 value={boardSize}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => {
                   // Al cambiar el cubo, la línea se recorta si ya no cabe (nunca puede ser mayor que el cubo).
@@ -305,7 +333,14 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
               />
             </label>
             <div style={styles.hint}>
-              {dimensions === 4
+              {fractalLevel > 0
+                ? t("Esponja fractal de nivel {level}: {cells} casillas jugables en una rejilla de {grid}. Dimensión fractal aproximada: {dim}. Una línea solo vale si no pasa por ningún hueco.", {
+                    level: fractalLevel,
+                    cells: fractalCellsPerLevel(dimensions) ** fractalLevel,
+                    grid: Array(dimensions).fill(boardSize).join("×"),
+                    dim: fractalDimension(dimensions).toFixed(2),
+                  })
+                : dimensions === 4
                 ? t("Hipercubo de {size}×{size}×{size}×{size}: {cells} casillas, repartidas en {size} cubos. Gana quien junte {line} en línea recta, también de un cubo a otro.", {
                     size: boardSize,
                     cells: boardSize ** 4,
@@ -316,7 +351,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                     cells: boardSize ** 3,
                     line: lineLength,
                   })}{" "}
-              {t("Mínimo {min}, máximo {max}. La línea no puede ser mayor que el cubo.", { min: MIN_BOARD_SIZE, max: maxBoardSize(dimensions) })}
+              {fractalLevel === 0 && t("Mínimo {min}, máximo {max}. La línea no puede ser mayor que el cubo.", { min: MIN_BOARD_SIZE, max: maxBoardSize(dimensions) })}
             </div>
 
             <div style={styles.sectionTitle}>{t("Vida")}</div>

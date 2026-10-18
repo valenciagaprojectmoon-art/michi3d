@@ -1,4 +1,4 @@
-import { indexToCoord } from "../game/logic";
+import { indexToCoord, HOLE } from "../game/logic";
 import { SPACING, cellPosition, slicePositions, spreadFactor } from "../game/cubeLayout";
 import type { Board, Player, WinLine } from "../game/logic";
 import { Cell } from "./Cell";
@@ -27,6 +27,7 @@ export function Board3D({ board, size, dimensions, spread, players, winLine, las
   const factor = spreadFactor(spread);
   const cellCount = size ** dimensions;
   for (let i = 0; i < cellCount; i++) {
+    if (board[i] === HOLE) continue; // hueco del fractal: no existe, ni se dibuja ni se puede pulsar
     const coord = indexToCoord(i, size);
     const isWinningCell = winLine !== null && winLine.includes(i);
     const canPlay = cellSelectionMode
