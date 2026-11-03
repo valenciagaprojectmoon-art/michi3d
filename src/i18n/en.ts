@@ -168,6 +168,19 @@ export const EN: Record<string, string> = {
   "Cancelaste el inicio de sesión.": "You cancelled the sign-in.",
   "No se pudo iniciar sesión, prueba otra vez.": "Couldn't sign you in, try again.",
 
+  // Clasificación
+  "Ver clasificación": "Show leaderboard",
+  "Ocultar clasificación": "Hide leaderboard",
+  "Cargando clasificación...": "Loading leaderboard...",
+  "No se pudo cargar la clasificación.": "Couldn't load the leaderboard.",
+  "Aún no hay partidas entre cuentas. Juega con tu cuenta y aparecerás aquí.": "There are no games between accounts yet. Play with your account and you will show up here.",
+  "Solo cuentan las partidas con al menos dos cuentas.": "Only games with at least two accounts count.",
+  "Jugador": "Player",
+  "Victorias": "Wins",
+  "Partidas": "Games",
+  "% victorias": "Win rate",
+  "Mejor racha": "Best streak",
+
   // Cubo
   "Abrir cubo": "Open cube",
 

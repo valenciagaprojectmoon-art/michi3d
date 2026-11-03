@@ -7,6 +7,7 @@ const respond = (status: number, body: unknown) => async (url: string, init?: an
 
 const { loadToken, saveToken, clearToken, consumeAuthFragment, fetchProviders, fetchMe, loginUrl } = await import("../src/game/auth");
 const { getServerHttpUrl, getServerUrl } = await import("../src/game/serverUrl");
+const { fetchLeaderboard, winRate } = await import("../src/game/leaderboard");
 let fails = 0; const ok = (c: boolean, m: string) => { console.log((c ? "OK   " : "FAIL ") + m); if (!c) fails++; };
 
 ok(getServerHttpUrl("wss://x.onrender.com") === "https://x.onrender.com" && getServerHttpUrl("ws://localhost:8080/") === "http://localhost:8080", "dirección HTTP a partir de la del WebSocket");
@@ -34,4 +35,13 @@ fetched = [];
 ok((await fetchMe("TOK") as any)?.status === "approved" && fetched[0].auth === "Bearer TOK", "fetchMe manda la sesión como Bearer");
 (globalThis as any).fetch = respond(401, {}); ok((await fetchMe("T")) === "invalid", "fetchMe: 401 = sesión inválida");
 (globalThis as any).fetch = respond(200, { status: "inventado" }); ok((await fetchMe("T")) === null, "fetchMe: estado desconocido, null");
+// ---- clasificación ----
+fetched = [];
+(globalThis as any).fetch = respond(200, [{ rank: 1, name: "ana", wins: 2, losses: 0, draws: 0, games: 2, bestStreak: 2 }, { basura: true }, null]);
+{ const rows = await fetchLeaderboard(5);
+  ok(rows?.length === 1 && rows[0].name === "ana" && fetched[0].url === "https://michi3d-server.onrender.com/leaderboard?limit=5", "fetchLeaderboard: pide la clasificación con el límite y descarta filas basura"); }
+(globalThis as any).fetch = respond(200, { no: "es una lista" }); ok((await fetchLeaderboard()) === null, "fetchLeaderboard: respuesta que no es una lista, null");
+(globalThis as any).fetch = respond(500, []); ok((await fetchLeaderboard()) === null, "fetchLeaderboard: error del servidor, null");
+(globalThis as any).fetch = async () => { throw new Error("red"); }; ok((await fetchLeaderboard()) === null, "fetchLeaderboard: sin red, null sin romper");
+ok(winRate({ wins: 3, games: 4 }) === 75 && winRate({ wins: 1, games: 3 }) === 33 && winRate({ wins: 2, games: 3 }) === 67 && winRate({ wins: 0, games: 0 }) === 0, "winRate: redondea y 0 partidas dan 0");
 console.log(fails === 0 ? "\nAUTHFRONT OK" : `\n${fails} FALLO(S)`); process.exit(fails ? 1 : 0);

@@ -87,6 +87,11 @@
     var r = await api("/admin/users/" + id + "/" + action + (query || ""), "POST");
     if (!r.ok) say("no se pudo (" + r.status + ")"); else loadAll();
   }
+  async function resetStats(u) {
+    if (!confirm("¿borrar las estadísticas de " + u.displayName + "? desaparecerá de la clasificación")) return;
+    var r = await api("/admin/users/" + u.id + "/reset-stats", "POST");
+    say(r.ok ? "estadísticas de " + u.displayName + " reiniciadas" : "no se pudo (" + r.status + ")");
+  }
   function banAccount(id) {
     var why = prompt("motivo del baneo (opcional)", "");
     if (why !== null) act(id, "ban", "?reason=" + encodeURIComponent(why));
@@ -109,7 +114,7 @@
       groups[pair[1]].forEach(function (u) {
         var btns = pair[0] === "pending"
           ? [button("aprobar", function () { act(u.id, "approve"); }), button("rechazar", function () { act(u.id, "ban", "?reason=" + encodeURIComponent("rechazada")); }, "danger")]
-          : pair[0] === "approved" ? [button("banear", function () { banAccount(u.id); }, "danger")]
+          : pair[0] === "approved" ? [button("reiniciar estadísticas", function () { resetStats(u); }), button("banear", function () { banAccount(u.id); }, "danger")]
           : [button("desbanear", function () { act(u.id, "unban"); })];
         box.appendChild(accountCard(u, btns));
       });

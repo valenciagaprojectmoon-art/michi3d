@@ -4,6 +4,9 @@ import { ABILITY_INFO } from "../game/abilityInfo";
 import { PRESET_ABILITIES, randomAbilities } from "../game/presets";
 import { useAuth } from "../hooks/useAuth";
 import { AuthBox } from "./AuthBox";
+import { Leaderboard } from "./Leaderboard";
+import { fetchLeaderboard } from "../game/leaderboard";
+import type { LeaderboardRow } from "../game/leaderboard";
 import type { ChangeEvent } from "react";
 import type { TimerConfig, TimeoutAction, LifeConfig, BoardConfig } from "../game/logic";
 import { normalizeBoardConfig, maxBoardSize, fractalCellsPerLevel, fractalDimension, MIN_BOARD_SIZE, MIN_LINE_LENGTH } from "../game/logic";
@@ -71,6 +74,7 @@ function inviteCodeFromUrl(): string {
 export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, connecting }: LobbyProps) {
   const { t, tx, lang } = useI18n();
   const auth = useAuth();
+  const [board, setBoard] = useState<LeaderboardRow[] | null | "loading" | "closed">("closed"); // la clasificación se carga al abrirla
   const [name, setName] = useState("");
   // Si se abrió un enlace de invitación (?sala=ABCD), arrancamos directo en "unirme" con el código puesto.
   const inviteCode = inviteCodeFromUrl();
@@ -248,6 +252,17 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
             <button style={styles.textButton} onClick={() => onPlayLocal(normalizeBoardConfig({ size: boardSize, lineLength, dimensions, fractalLevel }))}>
               {t("Jugar en este dispositivo (sin internet)")}
             </button>
+            <button
+              style={styles.textButton}
+              onClick={() => {
+                if (board !== "closed") return setBoard("closed");
+                setBoard("loading");
+                void fetchLeaderboard(10).then(setBoard);
+              }}
+            >
+              {board === "closed" ? t("Ver clasificación") : t("Ocultar clasificación")}
+            </button>
+            {board !== "closed" && <Leaderboard rows={board} />}
           </div>
         )}
 

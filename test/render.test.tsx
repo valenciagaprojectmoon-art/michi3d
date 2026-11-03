@@ -5,6 +5,7 @@ import { I18nProvider } from "../src/i18n";
 import { LanguageSwitcher } from "../src/i18n/LanguageSwitcher";
 import { CubeControls } from "../src/components/CubeControls";
 import { AuthBox } from "../src/components/AuthBox";
+import { Leaderboard } from "../src/components/Leaderboard";
 import { Lobby } from "../src/components/Lobby";
 import { HUD } from "../src/components/HUD";
 import { ChatPanel } from "../src/components/ChatPanel";
@@ -75,6 +76,19 @@ ok(authBox("es", { ...both, me: { id: "1", displayName: "Ana", status: "pending"
 ok(authBox("es", { ...both, me: { id: "1", displayName: "Ana", status: "banned" } }).includes("baneada") && authBox("de", { ...both, me: { id: "1", displayName: "Ana", status: "banned" } }).includes("gesperrt"), "login: cuenta baneada avisa");
 ok(authBox("es", { ...both, providers: null }).includes("reintentar") && authBox("en", { ...both, providers: null }).includes("try again"), "login: servidor sin respuesta ofrece reintentar");
 ok(authBox("es", { ...both, authError: "cancelled" }).includes("cancelaste") && authBox("es", { ...both, authError: "provider" }).includes("no se pudo iniciar sesión"), "login: errores al volver del proveedor");
+
+const rowsFixture: any = [
+  { rank: 1, name: "Ana", wins: 3, losses: 1, draws: 0, games: 4, bestStreak: 2 },
+  { rank: 2, name: "Beto", wins: 1, losses: 3, draws: 0, games: 4, bestStreak: 1 },
+];
+const lbEs = withLang("es", <Leaderboard rows={rowsFixture} />), lbEn = withLang("en", <Leaderboard rows={rowsFixture} />), lbDe = withLang("de", <Leaderboard rows={rowsFixture} />);
+ok(lbEs.includes("Ana") && lbEs.includes("Beto") && lbEs.indexOf("Ana") < lbEs.indexOf("Beto"), "clasificación: salen los jugadores en el orden recibido, con su mayúscula");
+ok(lbEs.includes(">75%<") && lbEs.includes(">25%<"), "clasificación: porcentaje de victorias (3 de 4 = 75%, 1 de 4 = 25%)");
+ok(lbEs.includes("victorias") && lbEs.includes("mejor racha") && lbEs.includes("solo cuentan las partidas con al menos dos cuentas"), "clasificación en español: columnas y aviso");
+ok(lbEn.includes("wins") && lbEn.includes("best streak") && lbEn.includes("win rate") && lbDe.includes("siege") && lbDe.includes("beste serie") && lbDe.includes("siegquote"), "clasificación en inglés y alemán");
+ok(withLang("es", <Leaderboard rows={[]} />).includes("aún no hay partidas entre cuentas") && withLang("en", <Leaderboard rows={[]} />).includes("no games between accounts yet"), "clasificación vacía: explica cómo aparecer");
+ok(withLang("es", <Leaderboard rows="loading" />).includes("cargando clasificación") && withLang("es", <Leaderboard rows={null} />).includes("no se pudo cargar la clasificación") && withLang("de", <Leaderboard rows={null} />).includes("konnte nicht geladen werden"), "clasificación: estados de carga y de error");
+ok(withLang("es", <Leaderboard rows={[{ rank: 1, name: "<b>x</b>", wins: 0, losses: 0, draws: 0, games: 0, bestStreak: 0 }] as any} />).includes("&lt;b&gt;x&lt;/b&gt;"), "clasificación: un nombre con HTML se muestra como texto (no se ejecuta) y 0 partidas dan 0%");
 
 const sw = withLang("en", <LanguageSwitcher />);
 ok(sw.includes("español") && sw.includes("english") && sw.includes('aria-label="language"'), "Selector de idioma: opciones y etiqueta accesible en inglés");
