@@ -73,7 +73,7 @@ export function Tesseract() {
 export function Features({ items }: { items: string[] }) {
   return (
     <div style={{ display: "flex", justifyContent: "center", margin: "-4px 0" }}>
-      {items.map((txt, i) => (
+      {items.map((txt) => (
         <span
           key={txt}
           style={{
@@ -82,8 +82,7 @@ export function Features({ items }: { items: string[] }) {
             letterSpacing: 0.4,
             whiteSpace: "nowrap",
             color: "var(--muted)",
-            padding: "2px 9px",
-            borderLeft: i === 0 ? "none" : "1px solid var(--line2)",
+            padding: "2px 10px",
           }}
         >
           {txt}
