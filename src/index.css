@@ -80,3 +80,38 @@ input:focus {
   background: var(--accent);
   color: var(--on-accent);
 }
+
+.lobby-grid {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(236, 230, 214, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(236, 230, 214, 0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 45%, #000 15%, transparent 72%);
+  mask-image: radial-gradient(ellipse at 50% 45%, #000 15%, transparent 72%);
+}
+.lobby-bigboard {
+  position: fixed;
+  width: 360px;
+  height: 360px;
+  opacity: 0.06;
+  pointer-events: none;
+}
+.lobby-card {
+  position: relative;
+  z-index: 1;
+  outline: 1px solid var(--line);
+  outline-offset: 6px;
+}
+@media (max-width: 900px) {
+  .lobby-bigboard {
+    display: none;
+  }
+}
+@media (max-width: 440px) {
+  .lobby-card {
+    outline: none;
+  }
+}

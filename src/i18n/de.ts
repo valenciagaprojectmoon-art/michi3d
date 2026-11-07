@@ -1,6 +1,9 @@
 /** Deutsche Übersetzungen, immer im Du-Stil (informelle Anrede). Der Schlüssel ist der spanische Originaltext, wie in en.ts. */
 export const DE: Record<string, string> = {
   "Tres en raya en 3D y 4D": "Drei gewinnt in 3D und 4D",
+  "Hasta 6x6x6x6": "Bis 6x6x6x6",
+  "10 habilidades": "10 Fähigkeiten",
+  "Salas online": "Online-Räume",
   "Tu nombre": "Dein Name",
   "Ej: Ana": "z. B. Ana",
   "Tengo al menos 14 años y acepto los {terms} y la {privacy}, incluido el registro del chat de la sala para moderación. (Solo para jugar online.)": "Ich bin mindestens 14 Jahre alt und akzeptiere die {terms} und die {privacy}, einschließlich der Aufzeichnung des Raumchats zur Moderation. (Nur für Online-Spiele.)",
