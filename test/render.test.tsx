@@ -37,16 +37,16 @@ const game = createInitialState([
 ] as any);
 const hud = (lang: string) => withLang(lang, <HUD game={game} onReset={() => {}} roomCode="ABCD" myPlayerId={0} isHost locked={false} onLeave={() => {}} onEndGame={() => {}} onToggleLocked={() => {}} />);
 const hEs = hud("es"), hEn = hud("en");
-ok(hEs.includes("es tu turno") && hEs.includes("reiniciar") && hEs.includes("salir") && hEs.includes("🔓 abierta"), "HUD en español");
-ok(hEn.includes("it&#x27;s your turn") && hEn.includes("restart") && hEn.includes("leave") && hEn.includes("🔓 open") && hEn.includes("room"), "HUD en inglés");
+ok(hEs.includes("es tu turno") && hEs.includes("reiniciar") && hEs.includes("salir") && hEs.includes("abierta"), "HUD en español");
+ok(hEn.includes("it&#x27;s your turn") && hEn.includes("restart") && hEn.includes("leave") && hEn.includes("open") && hEn.includes("room"), "HUD en inglés");
 const hOther = withLang("en", <HUD game={game} onReset={() => {}} roomCode="ABCD" myPlayerId={1} />);
 ok(hOther.includes("<strong>") && /turn/.test(hOther) && hOther.includes("&#x27;s turn"), "HUD en inglés: «{name}'s turn» con el nombre en negrita");
 
 const chat = (lang: string) => withLang(lang, <ChatPanel messages={[{ playerId: 1, playerName: "Beto", text: "hola", sentAt: 1 } as any]} players={game.players} myPlayerId={0} onSendChat={() => {}} onReportMessage={() => {}} />);
 // El panel arranca contraído o abierto según su estado: se comprueban ambos posibles textos
 const cEn = chat("en"), cEs = chat("es");
-ok((cEn.includes("send") || cEn.includes("💬 chat")) && !cEn.includes("enviar"), "Chat en inglés");
-ok(cEs.includes("enviar") || cEs.includes("💬 chat"), "Chat en español");
+ok((cEn.includes("send") || cEn.includes("chat")) && !cEn.includes("enviar"), "Chat en inglés");
+ok(cEs.includes("enviar") || cEs.includes("chat"), "Chat en español");
 
 const over = { ...game, status: { kind: "draw" } } as any;
 const hudOver = (lang: string, votes: number[]) => withLang(lang, <HUD game={over} onReset={() => {}} roomCode="ABCD" myPlayerId={1} onRematch={() => {}} rematchVotes={votes} rematchTotal={2} />);

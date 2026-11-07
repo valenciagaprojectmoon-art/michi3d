@@ -106,7 +106,7 @@ export function HUD({
           </button>
           {isHost && onToggleLocked && (
             <button style={styles.hostButton} onClick={() => onToggleLocked(!locked)}>
-              {locked ? t("🔒 Cerrada") : t("🔓 Abierta")}
+              {locked ? t("Cerrada") : t("Abierta")}
             </button>
           )}
           {isHost && onEndGame && status.kind === "playing" && (
@@ -157,7 +157,7 @@ export function HUD({
                 backgroundColor: players.find((p) => p.id === status.playerId)?.color,
               }}
             />
-            {tx("¡Ganó {name}! 🎉", { name: <strong>{players.find((p) => p.id === status.playerId)?.name}</strong> })}
+            {tx("¡Ganó {name}! ", { name: <strong>{players.find((p) => p.id === status.playerId)?.name}</strong> })}
           </div>
         )}
 
@@ -169,11 +169,11 @@ export function HUD({
                 backgroundColor: players.find((p) => p.id === status.playerId)?.color,
               }}
             />
-            {tx("¡Ganó {name}, los demás quedaron eliminados 💔", { name: <strong>{players.find((p) => p.id === status.playerId)?.name}</strong> })}
+            {tx("¡Ganó {name}, los demás quedaron eliminados ", { name: <strong>{players.find((p) => p.id === status.playerId)?.name}</strong> })}
           </div>
         )}
 
-        {status.kind === "draw" && <div style={styles.turnIndicator}>{t("Empate: el tablero se llenó 🤝")}</div>}
+        {status.kind === "draw" && <div style={styles.turnIndicator}>{t("Empate: el tablero se llenó ")}</div>}
 
         {status.kind === "ended_by_host" && (
           <div style={styles.turnIndicator}>{t("El creador de la sala terminó la partida ⏹")}</div>
@@ -217,7 +217,6 @@ function LifeBars({
             </div>
             <span style={styles.lifeNumbers}>
               {current}/{max}
-              {p.eliminated && " ☠️"}
             </span>
           </div>
         );
@@ -237,7 +236,7 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: "column",
     gap: 10,
     pointerEvents: "none",
-    fontFamily: "system-ui, -apple-system, sans-serif",
+    fontFamily: "var(--font-body)",
   },
   topRow: {
     display: "flex",
@@ -253,38 +252,39 @@ const styles: Record<string, React.CSSProperties> = {
     flexWrap: "wrap",
   },
   title: {
-    color: "#f5f5f5",
+    color: "var(--text)",
+    fontFamily: "var(--font-display)",
     fontSize: 22,
     margin: 0,
-    fontWeight: 700,
-    letterSpacing: 0.5,
+    fontWeight: 500,
+    letterSpacing: -0.2,
   },
   roomCodeBadge: {
     pointerEvents: "none",
-    background: "rgba(92, 157, 255, 0.15)",
-    border: "1px solid #5c9dff",
-    color: "#c7dcff",
-    borderRadius: 8,
+    background: "var(--accent-wash)",
+    border: "1px solid var(--accent)",
+    color: "var(--accent-soft)",
+    borderRadius: 3,
     padding: "8px 14px",
     fontSize: 13,
     letterSpacing: 1,
   },
   resetButton: {
     pointerEvents: "auto",
-    background: "#3d4456",
-    color: "#f5f5f5",
-    border: "1px solid #5a6377",
-    borderRadius: 8,
+    background: "var(--line2)",
+    color: "var(--text)",
+    border: "1px solid var(--line2)",
+    borderRadius: 3,
     padding: "8px 16px",
     fontSize: 14,
     cursor: "pointer",
   },
   hostButton: {
     pointerEvents: "auto",
-    background: "#3d4456",
-    color: "#f5f5f5",
-    border: "1px solid #5a6377",
-    borderRadius: 8,
+    background: "var(--line2)",
+    color: "var(--text)",
+    border: "1px solid var(--line2)",
+    borderRadius: 3,
     padding: "8px 16px",
     fontSize: 14,
     cursor: "pointer",
@@ -292,9 +292,9 @@ const styles: Record<string, React.CSSProperties> = {
   endButton: {
     pointerEvents: "auto",
     background: "transparent",
-    color: "#ffd75c",
-    border: "1px solid #6b5d33",
-    borderRadius: 8,
+    color: "var(--warn)",
+    border: "1px solid var(--warn-line)",
+    borderRadius: 3,
     padding: "8px 16px",
     fontSize: 14,
     cursor: "pointer",
@@ -302,17 +302,16 @@ const styles: Record<string, React.CSSProperties> = {
   leaveButton: {
     pointerEvents: "auto",
     background: "transparent",
-    color: "#ff9b9b",
-    border: "1px solid #5a3d3d",
-    borderRadius: 8,
+    color: "var(--danger-soft)",
+    border: "1px solid var(--danger-line)",
+    borderRadius: 3,
     padding: "8px 16px",
     fontSize: 14,
     cursor: "pointer",
   },
   statusBox: {
-    background: "rgba(20, 22, 30, 0.75)",
-    backdropFilter: "blur(6px)",
-    borderRadius: 10,
+    background: "rgba(19, 18, 16, 0.75)",
+    borderRadius: 3,
     padding: "10px 16px",
     alignSelf: "flex-start",
     display: "flex",
@@ -325,30 +324,30 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 12,
   },
   turnIndicator: {
-    color: "#f5f5f5",
+    color: "var(--text)",
     fontSize: 16,
     display: "flex",
     alignItems: "center",
     gap: 8,
   },
   timerBadge: {
-    background: "rgba(92, 157, 255, 0.15)",
-    border: "1px solid #5c9dff",
-    color: "#c7dcff",
-    borderRadius: 8,
+    background: "var(--accent-wash)",
+    border: "1px solid var(--accent)",
+    color: "var(--accent-soft)",
+    borderRadius: 3,
     padding: "4px 10px",
     fontSize: 13,
     fontVariantNumeric: "tabular-nums",
   },
   timerBadgeLow: {
-    background: "rgba(255, 92, 92, 0.2)",
-    border: "1px solid #ff5c5c",
-    color: "#ff9b9b",
+    background: "var(--danger-wash)",
+    border: "1px solid var(--danger)",
+    color: "var(--danger-soft)",
   },
   swatch: {
     width: 14,
     height: 14,
-    borderRadius: 4,
+    borderRadius: 2,
     display: "inline-block",
   },
   livesRow: {
@@ -356,10 +355,10 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: "column",
     gap: 4,
     paddingTop: 4,
-    borderTop: "1px solid #333a4d",
+    borderTop: "1px solid var(--line)",
   },
   livesEntry: {
-    color: "#c5cad6",
+    color: "var(--text2)",
     fontSize: 13,
     display: "flex",
     alignItems: "center",
@@ -371,8 +370,8 @@ const styles: Record<string, React.CSSProperties> = {
   lifeBarTrack: {
     width: 80,
     height: 8,
-    background: "#14161e",
-    borderRadius: 4,
+    background: "var(--bg)",
+    borderRadius: 2,
     overflow: "hidden",
   },
   lifeBarFill: {
@@ -384,7 +383,7 @@ const styles: Record<string, React.CSSProperties> = {
     minWidth: 40,
   },
   hint: {
-    color: "#9aa3b5",
+    color: "var(--muted)",
     fontSize: 12,
     marginTop: "auto",
   },

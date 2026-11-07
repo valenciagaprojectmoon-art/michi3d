@@ -59,7 +59,7 @@ export default function App() {
   // "choosing": formulario inicial. El dato de create/join se guarda directamente
   // en `mode` al hacer la transición, así nunca se pierde al desmontar este componente.
   return (
-    <div style={{ width: "100vw", height: "100vh", background: "#14161e", position: "relative" }}>
+    <div style={{ width: "100vw", height: "100vh", background: "var(--bg)", position: "relative" }}>
       <Lobby
         onCreateRoom={(playerName, options) =>
           setMode({ kind: "online", initialAction: { kind: "create", playerName, options } })
@@ -97,7 +97,7 @@ function AppLocal({ onExit, boardConfig }: { onExit: () => void; boardConfig: Bo
   const gameActive = state.status.kind === "playing";
 
   return (
-    <div style={{ width: "100vw", height: "100vh", background: "#14161e", position: "relative" }}>
+    <div style={{ width: "100vw", height: "100vh", background: "var(--bg)", position: "relative" }}>
       <GameScene
         board={state.board}
         size={state.boardConfig.size}
@@ -152,7 +152,7 @@ function AppOnline({ onExit, initialAction }: { onExit: () => void; initialActio
   }
 
   return (
-    <div style={{ width: "100vw", height: "100vh", background: "#14161e", position: "relative" }}>
+    <div style={{ width: "100vw", height: "100vh", background: "var(--bg)", position: "relative" }}>
       {phase.kind === "connecting" && <div style={connectingStyle}>{t("Conectando... si el servidor estaba dormido, puede tardar un minuto.")}</div>}
       {phase.kind === "error" && (
         <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
@@ -256,7 +256,7 @@ function AppInRoom({
   };
 
   return (
-    <div style={{ width: "100vw", height: "100vh", background: "#14161e", position: "relative" }}>
+    <div style={{ width: "100vw", height: "100vh", background: "var(--bg)", position: "relative" }}>
       {activeDistortion && <DistortedCursor divergence={activeDistortion} />}
       <div
         style={
@@ -335,7 +335,7 @@ function AppInRoom({
       {lastEffects && lastEffects.length > 0 && (
         <div style={effectNoticeStyle}>
           {lastEffects.map((e, i) => (
-            <div key={i}>{e.kind === "screen_distort" ? t("🎨 ¡Te tiraron un Globo de Pintura! Tu pantalla se ve rara este turno.") : t("Te tocó un efecto.")}</div>
+            <div key={i}>{e.kind === "screen_distort" ? t("¡Te tiraron un Globo de Pintura! Tu pantalla se ve rara este turno.") : t("Te tocó un efecto.")}</div>
           ))}
         </div>
       )}
@@ -356,8 +356,8 @@ const connectingStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  color: "#9aa3b5",
-  fontFamily: "system-ui, -apple-system, sans-serif",
+  color: "var(--muted)",
+  fontFamily: "var(--font-body)",
   fontSize: 15,
 };
 
@@ -366,12 +366,12 @@ const noticeStyle: React.CSSProperties = {
   bottom: 16,
   left: "50%",
   transform: "translateX(-50%)",
-  background: "rgba(20, 22, 30, 0.9)",
-  color: "#f5f5f5",
+  background: "rgba(19, 18, 16, 0.9)",
+  color: "var(--text)",
   padding: "10px 18px",
-  borderRadius: 8,
+  borderRadius: 3,
   fontSize: 13,
-  fontFamily: "system-ui, -apple-system, sans-serif",
+  fontFamily: "var(--font-body)",
 };
 
 const effectNoticeStyle: React.CSSProperties = {
@@ -379,11 +379,11 @@ const effectNoticeStyle: React.CSSProperties = {
   top: 90,
   left: "50%",
   transform: "translateX(-50%)",
-  background: "rgba(255, 92, 92, 0.2)",
-  border: "1px solid #ff5c5c",
-  color: "#ff9b9b",
+  background: "var(--danger-wash)",
+  border: "1px solid var(--danger)",
+  color: "var(--danger-soft)",
   padding: "10px 18px",
-  borderRadius: 8,
+  borderRadius: 3,
   fontSize: 13,
-  fontFamily: "system-ui, -apple-system, sans-serif",
+  fontFamily: "var(--font-body)",
 };

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BoxGeometry } from "three";
+import { BoxGeometry, EdgesGeometry } from "three";
 import { Text } from "@react-three/drei";
 import type { ThreeEvent } from "@react-three/fiber";
 import type { Player } from "../game/logic";
@@ -15,8 +15,9 @@ interface CellProps {
 }
 
 const CELL_SIZE = 0.85; // deja un pequeño hueco (0.15) entre casillas para que se vea la rejilla
-const EMPTY_COLOR = "#2a2f3a";
-const EMPTY_HOVER_COLOR = "#3d4456";
+const EMPTY_COLOR = "#3a362c";
+const EMPTY_HOVER_COLOR = "#8a8473";
+const INK = "#ece6d6";
 
 /**
  * Una casilla individual del cubo 3x3x3.
@@ -27,6 +28,7 @@ const EMPTY_HOVER_COLOR = "#3d4456";
 // Todas las casillas comparten las mismas geometrías: con un hipercubo de 6 son 1296 casillas y crear una por casilla
 // gastaba memoria y tiempo de arranque para nada.
 const CELL_BOX = new BoxGeometry(CELL_SIZE, CELL_SIZE, CELL_SIZE);
+const CELL_EDGES = new EdgesGeometry(CELL_BOX);
 const LAST_MOVE_BOX = new BoxGeometry(CELL_SIZE * 1.14, CELL_SIZE * 1.14, CELL_SIZE * 1.14);
 
 export function Cell({ position, mark, players, isWinningCell, isLastMove, canPlay, onClick }: CellProps) {
@@ -58,24 +60,30 @@ export function Cell({ position, mark, players, isWinningCell, isLastMove, canPl
         <meshStandardMaterial
           color={baseColor}
           transparent={isEmpty}
-          opacity={isEmpty ? 0.35 : 1}
+          opacity={isEmpty ? (hovered && canPlay ? 0.55 : 0.16) : 1}
           emissive={isWinningCell || isLastMove ? baseColor : "#000000"}
-          emissiveIntensity={isWinningCell ? 0.9 : isLastMove ? 0.35 : 0}
-          roughness={0.4}
-          metalness={0.1}
+          emissiveIntensity={isWinningCell ? 0.55 : isLastMove ? 0.2 : 0}
+          roughness={0.85}
+          metalness={0}
         />
       </mesh>
       {isLastMove && (
         <mesh raycast={() => null}>
           <primitive object={LAST_MOVE_BOX} attach="geometry" />
-          <meshBasicMaterial color="#ffffff" wireframe transparent opacity={0.85} />
+          <meshBasicMaterial color={INK} wireframe transparent opacity={0.9} />
         </mesh>
+      )}
+      {(player || hovered) && (
+        <lineSegments raycast={() => null}>
+          <primitive object={CELL_EDGES} attach="geometry" />
+          <lineBasicMaterial color={player ? "#17110d" : INK} transparent opacity={player ? 0.55 : 0.7} />
+        </lineSegments>
       )}
       {player && (
         <Text
           position={[0, 0, CELL_SIZE / 2 + 0.02]}
           fontSize={0.35}
-          color="#ffffff"
+          color="#17110d"
           anchorX="center"
           anchorY="middle"
         >

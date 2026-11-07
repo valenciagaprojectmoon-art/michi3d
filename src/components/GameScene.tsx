@@ -42,9 +42,10 @@ export function GameScene({ board, size, dimensions, spread, lastMoveIndex, play
   return (
     <Canvas key={`${dimensions}-${size}`} camera={{ position: [5 * scale * factor, 4 * scale * factor, 6 * scale * factor], fov: 45 }}>
       <CameraFit factor={factor} />
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[5, 8, 5]} intensity={1} />
-      <directionalLight position={[-5, -3, -5]} intensity={0.3} />
+      <color attach="background" args={["#131210"]} />
+      <hemisphereLight args={["#f3e9d2", "#2a241c", 0.9]} />
+      <directionalLight position={[5, 8, 5]} intensity={0.8} color="#fff1d6" />
+      <directionalLight position={[-5, -3, -5]} intensity={0.2} color="#9fb4d6" />
 
       <Board3D
         board={board}

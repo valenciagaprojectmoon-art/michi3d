@@ -38,16 +38,16 @@ const CELL_TARGETED_ABILITIES: AbilityId[] = ["malversion_fondos"];
 
 /** Nombres legibles para mostrar en botones, ya que los ids internos usan snake_case. */
 const ABILITY_LABELS: Record<AbilityId, string> = {
-  papa_caliente: "🥔 Papa Caliente",
-  chicharron: "🍖 Chicharrón",
-  postcognicion: "🔮 Postcognición",
-  acelerador_particulas: "⚛️ Acelerador de Partículas",
-  globo_pintura: "🎨 Globo de Pintura",
-  balanza: "⚖️ Balanza",
-  reloj_roto: "⏰ Reloj Roto",
-  brujula_mal_imantada: "🧭 Brújula Mal Imantada",
-  goyslop: "🥫 Goyslop",
-  malversion_fondos: "💰 Malversión de Fondos",
+  papa_caliente: "Papa Caliente",
+  chicharron: "Chicharrón",
+  postcognicion: "Postcognición",
+  acelerador_particulas: "Acelerador de Partículas",
+  globo_pintura: "Globo de Pintura",
+  balanza: "Balanza",
+  reloj_roto: "Reloj Roto",
+  brujula_mal_imantada: "Brújula Mal Imantada",
+  goyslop: "Goyslop",
+  malversion_fondos: "Malversión de Fondos",
 };
 
 export function AbilityPanel({
@@ -283,16 +283,16 @@ export function AbilityPanel({
         <div style={styles.abilityButtons}>
           {holderName && (
             <div style={styles.zCounter}>
-              {t("🥔 La Papa Caliente la tiene {who}, turnos sostenida: {turns}", { who: papaCaliente.holderId === myPlayerId ? t("TI") : (holderName ?? ""), turns: papaCaliente.turnsHeld })}
+              {t("La Papa Caliente la tiene {who}, turnos sostenida: {turns}", { who: papaCaliente.holderId === myPlayerId ? t("TI") : (holderName ?? ""), turns: papaCaliente.turnsHeld })}
             </div>
           )}
           {aceleradorParams && (
             <div style={styles.zCounter}>
               {acelerador.effectLive
-                ? t("⚛️ ¡Acelerador ACTIVO! −{damage} de vida por cada {seconds}s que tardes en jugar", { damage: aceleradorParams.danoPorTardanza, seconds: aceleradorParams.segundosPorDano })
+                ? t("¡Acelerador ACTIVO! −{damage} de vida por cada {seconds}s que tardes en jugar", { damage: aceleradorParams.danoPorTardanza, seconds: aceleradorParams.segundosPorDano })
                 : aceleradorNotYet
-                  ? t("⚛️ El Acelerador aparece tras {turn} turnos jugados (van {played})", { turn: aceleradorParams.turnoDeAparicion, played: globalTurnIndex })
-                  : t("⚛️ Acelerador: votos {votes}/{needed}", { votes: acelerador.activatedByPlayerIds.length, needed: aceleradorNeeded })}
+                  ? t("El Acelerador aparece tras {turn} turnos jugados (van {played})", { turn: aceleradorParams.turnoDeAparicion, played: globalTurnIndex })
+                  : t("Acelerador: votos {votes}/{needed}", { votes: acelerador.activatedByPlayerIds.length, needed: aceleradorNeeded })}
             </div>
           )}
           {shuffle && (
@@ -312,9 +312,9 @@ export function AbilityPanel({
             const label =
               ability === "papa_caliente"
                 ? papaCaliente.holderId === null
-                  ? "🥔 Tomar Papa Caliente"
+                  ? "Tomar Papa Caliente"
                   : papaCaliente.holderId === myPlayerId
-                    ? "🥔 Pasar Papa Caliente"
+                    ? "Pasar Papa Caliente"
                     : ABILITY_LABELS[ability]
                 : ABILITY_LABELS[ability];
             return (
@@ -355,7 +355,7 @@ const styles: Record<string, React.CSSProperties> = {
     left: "50%",
     transform: "translateX(-50%)",
     pointerEvents: "none",
-    fontFamily: "system-ui, -apple-system, sans-serif",
+    fontFamily: "var(--font-body)",
   },
   abilityButtons: {
     display: "flex",
@@ -367,23 +367,22 @@ const styles: Record<string, React.CSSProperties> = {
   },
   zCounter: {
     pointerEvents: "none",
-    color: "#9aa3b5",
+    color: "var(--muted)",
     fontSize: 12,
     width: "100%",
     textAlign: "center",
     marginBottom: 2,
   },
   freeTag: {
-    color: "#7be495",
+    color: "var(--ok)",
     fontSize: 11,
   },
   abilityButton: {
     pointerEvents: "auto",
-    background: "rgba(28, 32, 48, 0.9)",
-    backdropFilter: "blur(6px)",
-    color: "#f5f5f5",
-    border: "1px solid #3d4456",
-    borderRadius: 10,
+    background: "rgba(27, 25, 21, 0.9)",
+    color: "var(--text)",
+    border: "1px solid var(--line2)",
+    borderRadius: 3,
     padding: "10px 14px",
     fontSize: 13,
     cursor: "pointer",
@@ -391,9 +390,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   targetPicker: {
     pointerEvents: "auto",
-    background: "rgba(20, 22, 30, 0.95)",
-    backdropFilter: "blur(6px)",
-    border: "1px solid #3d4456",
+    background: "rgba(19, 18, 16, 0.95)",
+    border: "1px solid var(--line2)",
     borderRadius: 12,
     padding: "14px 18px",
     display: "flex",
@@ -402,7 +400,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
   },
   targetPickerTitle: {
-    color: "#c5cad6",
+    color: "var(--text2)",
     fontSize: 13,
   },
   targetButtons: {
@@ -412,19 +410,19 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: "center",
   },
   targetButton: {
-    background: "#14161e",
-    color: "#f5f5f5",
+    background: "var(--bg)",
+    color: "var(--text)",
     border: "2px solid",
-    borderRadius: 8,
+    borderRadius: 3,
     padding: "8px 14px",
     fontSize: 13,
     cursor: "pointer",
   },
   cancelButton: {
     background: "transparent",
-    color: "#9aa3b5",
-    border: "1px solid #3d4456",
-    borderRadius: 8,
+    color: "var(--muted)",
+    border: "1px solid var(--line2)",
+    borderRadius: 3,
     padding: "8px 14px",
     fontSize: 13,
     cursor: "pointer",

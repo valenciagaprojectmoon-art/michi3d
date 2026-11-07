@@ -55,7 +55,7 @@ export function Board3D({ board, size, dimensions, spread, players, winLine, las
       {slicePositions(size, dimensions, factor).map((center, w) => (
         <mesh key={w} position={center}>
           <boxGeometry args={[SPACING * size * factor, SPACING * size * factor, SPACING * size * factor]} />
-          <meshBasicMaterial color="#4a5568" wireframe transparent opacity={0.25} />
+          <meshBasicMaterial color="#5b5546" wireframe transparent opacity={0.35} />
         </mesh>
       ))}
     </group>

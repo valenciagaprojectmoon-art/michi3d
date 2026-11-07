@@ -44,9 +44,9 @@ export function Leaderboard({ rows }: LeaderboardProps) {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  box: { padding: "10px 12px", marginTop: 10, border: "1px solid #333a4d", borderRadius: 8, background: "rgba(255,255,255,0.03)", color: "#d7dbe6", fontSize: 13 },
+  box: { padding: "10px 12px", marginTop: 10, border: "1px solid var(--line)", borderRadius: 3, background: "rgba(255,255,255,0.03)", color: "var(--text2)", fontSize: 13 },
   table: { width: "100%", borderCollapse: "collapse" },
-  th: { padding: "4px 6px", color: "#8b93a7", fontWeight: 500, textAlign: "center", fontSize: 12 },
-  td: { padding: "4px 6px", textAlign: "center", borderTop: "1px solid #232838" },
-  note: { marginTop: 8, color: "#8b93a7", fontSize: 12 },
+  th: { padding: "4px 6px", color: "var(--muted)", fontWeight: 500, textAlign: "center", fontSize: 12 },
+  td: { padding: "4px 6px", textAlign: "center", borderTop: "1px solid var(--surface2)" },
+  note: { marginTop: 8, color: "var(--muted)", fontSize: 12 },
 };

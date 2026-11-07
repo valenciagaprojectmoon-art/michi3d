@@ -41,12 +41,12 @@ export function ChatPanel({ messages, players, myPlayerId, onSendChat, onReportM
     onReportMessage(m, reason);
   };
 
-  const playerColor = (playerId: number) => players.find((p) => p.id === playerId)?.color ?? "#9aa3b5";
+  const playerColor = (playerId: number) => players.find((p) => p.id === playerId)?.color ?? "var(--muted)";
 
   if (collapsed) {
     return (
       <button style={styles.collapsedButton} onClick={() => setCollapsed(false)}>
-        {t("💬 Chat")}{messages.length > 0 ? ` (${messages.length})` : ""}
+        {t("Chat")}{messages.length > 0 ? ` (${messages.length})` : ""}
       </button>
     );
   }
@@ -61,7 +61,7 @@ export function ChatPanel({ messages, players, myPlayerId, onSendChat, onReportM
       </div>
 
       <div style={styles.privacyNotice}>
-        {t("🔒 El chat de esta sala se registra para moderación.")}{" "}
+        {t("El chat de esta sala se registra para moderación.")}{" "}
         <a href={legalHref(lang, "privacy")} target="_blank" rel="noreferrer" style={styles.privacyLink}>
           {t("Más info")}
         </a>
@@ -108,15 +108,14 @@ const styles: Record<string, React.CSSProperties> = {
     bottom: 16,
     right: 16,
     pointerEvents: "auto",
-    background: "rgba(28, 32, 48, 0.9)",
-    backdropFilter: "blur(6px)",
-    color: "#f5f5f5",
-    border: "1px solid #3d4456",
-    borderRadius: 10,
+    background: "rgba(27, 25, 21, 0.9)",
+    color: "var(--text)",
+    border: "1px solid var(--line2)",
+    borderRadius: 3,
     padding: "10px 16px",
     fontSize: 14,
     cursor: "pointer",
-    fontFamily: "system-ui, -apple-system, sans-serif",
+    fontFamily: "var(--font-body)",
   },
   container: {
     position: "absolute",
@@ -126,12 +125,11 @@ const styles: Record<string, React.CSSProperties> = {
     maxHeight: 360,
     display: "flex",
     flexDirection: "column",
-    background: "rgba(20, 22, 30, 0.95)",
-    backdropFilter: "blur(6px)",
-    border: "1px solid #3d4456",
+    background: "rgba(19, 18, 16, 0.95)",
+    border: "1px solid var(--line2)",
     borderRadius: 12,
     pointerEvents: "auto",
-    fontFamily: "system-ui, -apple-system, sans-serif",
+    fontFamily: "var(--font-body)",
     overflow: "hidden",
   },
   header: {
@@ -139,32 +137,32 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: "space-between",
     alignItems: "center",
     padding: "10px 14px",
-    borderBottom: "1px solid #333a4d",
-    color: "#c5cad6",
+    borderBottom: "1px solid var(--line)",
+    color: "var(--text2)",
     fontSize: 13,
     fontWeight: 600,
   },
   collapseButton: {
     background: "transparent",
     border: "none",
-    color: "#9aa3b5",
+    color: "var(--muted)",
     cursor: "pointer",
     fontSize: 14,
   },
   privacyNotice: {
     padding: "6px 14px",
     fontSize: 11,
-    color: "#9aa3b5",
-    borderBottom: "1px solid #333a4d",
+    color: "var(--muted)",
+    borderBottom: "1px solid var(--line)",
     background: "rgba(255, 255, 255, 0.03)",
   },
   privacyLink: {
-    color: "#7aa2f7",
+    color: "var(--accent)",
   },
   reportButton: {
     background: "transparent",
     border: "none",
-    color: "#6b7388",
+    color: "var(--muted)",
     cursor: "pointer",
     fontSize: 12,
     padding: "0 4px",
@@ -181,13 +179,13 @@ const styles: Record<string, React.CSSProperties> = {
     maxHeight: 240,
   },
   emptyHint: {
-    color: "#6b7280",
+    color: "var(--muted)",
     fontSize: 12,
     fontStyle: "italic",
   },
   messageRow: {
     fontSize: 13,
-    color: "#e5e7eb",
+    color: "var(--text)",
     lineHeight: 1.4,
     wordBreak: "break-word",
   },
@@ -195,29 +193,29 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
   },
   messageText: {
-    color: "#e5e7eb",
+    color: "var(--text)",
   },
   inputRow: {
     display: "flex",
     gap: 6,
     padding: "10px 14px",
-    borderTop: "1px solid #333a4d",
+    borderTop: "1px solid var(--line)",
   },
   input: {
     flex: 1,
-    background: "#14161e",
-    border: "1px solid #3d4456",
-    borderRadius: 8,
+    background: "var(--bg)",
+    border: "1px solid var(--line2)",
+    borderRadius: 3,
     padding: "8px 10px",
-    color: "#f5f5f5",
+    color: "var(--text)",
     fontSize: 13,
     outline: "none",
   },
   sendButton: {
-    background: "#5c9dff",
-    color: "#0a0b10",
+    background: "var(--accent)",
+    color: "var(--on-accent)",
     border: "none",
-    borderRadius: 8,
+    borderRadius: 3,
     padding: "8px 12px",
     fontSize: 13,
     fontWeight: 600,
