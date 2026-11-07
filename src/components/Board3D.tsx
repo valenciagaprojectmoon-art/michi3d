@@ -1,7 +1,18 @@
 import { indexToCoord, HOLE } from "../game/logic";
 import { SPACING, cellPosition, slicePositions, spreadFactor } from "../game/cubeLayout";
 import type { Board, Player, WinLine } from "../game/logic";
+import { useMemo } from "react";
+import { BoxGeometry, EdgesGeometry } from "three";
 import { Cell } from "./Cell";
+
+function Frame({ center, side }: { center: [number, number, number]; side: number }) {
+  const geo = useMemo(() => new EdgesGeometry(new BoxGeometry(side, side, side)), [side]);
+  return (
+    <lineSegments position={center} geometry={geo} raycast={() => null}>
+      <lineBasicMaterial color="#8a8473" transparent opacity={0.55} />
+    </lineSegments>
+  );
+}
 
 interface Board3DProps {
   board: Board;
@@ -43,6 +54,7 @@ export function Board3D({ board, size, dimensions, spread, players, winLine, las
         isWinningCell={isWinningCell}
         isLastMove={i === lastMoveIndex}
         canPlay={canPlay}
+        showEdges={cellCount <= 256}
         onClick={() => onCellClick(i)}
       />
     );
@@ -53,10 +65,7 @@ export function Board3D({ board, size, dimensions, spread, players, winLine, las
       {cells}
       {/* Wireframe contenedor: ayuda a percibir el cubo como un todo, no solo cubitos sueltos */}
       {slicePositions(size, dimensions, factor).map((center, w) => (
-        <mesh key={w} position={center}>
-          <boxGeometry args={[SPACING * size * factor, SPACING * size * factor, SPACING * size * factor]} />
-          <meshBasicMaterial color="#5b5546" wireframe transparent opacity={0.35} />
-        </mesh>
+        <Frame key={w} center={center as [number, number, number]} side={SPACING * size * factor} />
       ))}
     </group>
   );

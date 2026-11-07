@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { skin } from "../game/skin";
 import { useI18n } from "../i18n";
 import type { GameState, Player } from "../game/logic";
 
@@ -126,7 +127,7 @@ export function HUD({
         {status.kind === "playing" && (
           <div style={styles.turnRow}>
             <div style={styles.turnIndicator}>
-              <span style={{ ...styles.swatch, backgroundColor: currentPlayer.color }} />
+              <span style={{ ...styles.swatch, backgroundColor: skin(currentPlayer.color) }} />
               {myPlayerId !== undefined ? (
                 isMyTurn ? (
                   <strong>{t("Es tu turno")}</strong>
@@ -154,7 +155,7 @@ export function HUD({
             <span
               style={{
                 ...styles.swatch,
-                backgroundColor: players.find((p) => p.id === status.playerId)?.color,
+                backgroundColor: skin(players.find((p) => p.id === status.playerId)?.color ?? ""),
               }}
             />
             {tx("¡Ganó {name}! ", { name: <strong>{players.find((p) => p.id === status.playerId)?.name}</strong> })}
@@ -166,7 +167,7 @@ export function HUD({
             <span
               style={{
                 ...styles.swatch,
-                backgroundColor: players.find((p) => p.id === status.playerId)?.color,
+                backgroundColor: skin(players.find((p) => p.id === status.playerId)?.color ?? ""),
               }}
             />
             {tx("¡Ganó {name}, los demás quedaron eliminados ", { name: <strong>{players.find((p) => p.id === status.playerId)?.name}</strong> })}
@@ -210,10 +211,10 @@ function LifeBars({
         const pct = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0;
         return (
           <div key={p.id} style={{ ...styles.livesEntry, opacity: p.eliminated ? 0.4 : 1 }}>
-            <span style={{ ...styles.swatch, backgroundColor: p.color }} />
+            <span style={{ ...styles.swatch, backgroundColor: skin(p.color) }} />
             <span style={styles.lifeName}>{p.name}</span>
             <div style={styles.lifeBarTrack}>
-              <div style={{ ...styles.lifeBarFill, width: `${pct}%`, backgroundColor: p.color }} />
+              <div style={{ ...styles.lifeBarFill, width: `${pct}%`, backgroundColor: skin(p.color) }} />
             </div>
             <span style={styles.lifeNumbers}>
               {current}/{max}

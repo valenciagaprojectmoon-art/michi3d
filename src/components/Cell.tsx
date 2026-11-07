@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { skin } from "../game/skin";
 import { BoxGeometry, EdgesGeometry } from "three";
 import { Text } from "@react-three/drei";
 import type { ThreeEvent } from "@react-three/fiber";
@@ -10,13 +11,14 @@ interface CellProps {
   players: Player[];
   isWinningCell: boolean;
   isLastMove: boolean; // la casilla que acaba de cambiar: se marca con un marco y un brillo suave
+  showEdges: boolean;
   canPlay: boolean; // false si la partida terminó o la casilla está ocupada
   onClick: () => void;
 }
 
 const CELL_SIZE = 0.85; // deja un pequeño hueco (0.15) entre casillas para que se vea la rejilla
-const EMPTY_COLOR = "#3a362c";
-const EMPTY_HOVER_COLOR = "#8a8473";
+const EMPTY_COLOR = "#8a826e";
+const EMPTY_HOVER_COLOR = "#cfc6b0";
 const INK = "#ece6d6";
 
 /**
@@ -30,13 +32,14 @@ const INK = "#ece6d6";
 const CELL_BOX = new BoxGeometry(CELL_SIZE, CELL_SIZE, CELL_SIZE);
 const CELL_EDGES = new EdgesGeometry(CELL_BOX);
 const LAST_MOVE_BOX = new BoxGeometry(CELL_SIZE * 1.14, CELL_SIZE * 1.14, CELL_SIZE * 1.14);
+const LAST_MOVE_EDGES = new EdgesGeometry(LAST_MOVE_BOX);
 
-export function Cell({ position, mark, players, isWinningCell, isLastMove, canPlay, onClick }: CellProps) {
+export function Cell({ position, mark, players, isWinningCell, isLastMove, showEdges, canPlay, onClick }: CellProps) {
   const [hovered, setHovered] = useState(false);
   const player = mark !== null ? players.find((p) => p.id === mark) : undefined;
   const isEmpty = mark === null;
 
-  const baseColor = player ? player.color : hovered && canPlay ? EMPTY_HOVER_COLOR : EMPTY_COLOR;
+  const baseColor = player ? skin(player.color) : hovered && canPlay ? EMPTY_HOVER_COLOR : EMPTY_COLOR;
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
@@ -60,7 +63,7 @@ export function Cell({ position, mark, players, isWinningCell, isLastMove, canPl
         <meshStandardMaterial
           color={baseColor}
           transparent={isEmpty}
-          opacity={isEmpty ? (hovered && canPlay ? 0.55 : 0.16) : 1}
+          opacity={isEmpty ? (hovered && canPlay ? 0.5 : 0.2) : 1}
           emissive={isWinningCell || isLastMove ? baseColor : "#000000"}
           emissiveIntensity={isWinningCell ? 0.55 : isLastMove ? 0.2 : 0}
           roughness={0.85}
@@ -68,15 +71,15 @@ export function Cell({ position, mark, players, isWinningCell, isLastMove, canPl
         />
       </mesh>
       {isLastMove && (
-        <mesh raycast={() => null}>
-          <primitive object={LAST_MOVE_BOX} attach="geometry" />
-          <meshBasicMaterial color={INK} wireframe transparent opacity={0.9} />
-        </mesh>
+        <lineSegments raycast={() => null}>
+          <primitive object={LAST_MOVE_EDGES} attach="geometry" />
+          <lineBasicMaterial color="#e2653f" />
+        </lineSegments>
       )}
-      {(player || hovered) && (
+      {(player || hovered || showEdges) && (
         <lineSegments raycast={() => null}>
           <primitive object={CELL_EDGES} attach="geometry" />
-          <lineBasicMaterial color={player ? "#17110d" : INK} transparent opacity={player ? 0.55 : 0.7} />
+          <lineBasicMaterial color={player ? "#17110d" : INK} transparent opacity={player ? 0.55 : hovered ? 0.8 : 0.3} />
         </lineSegments>
       )}
       {player && (

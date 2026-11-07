@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { skin } from "../game/skin";
 import { useI18n, legalHref } from "../i18n";
 import type { ChangeEvent, KeyboardEvent } from "react";
 import type { ChatMessage } from "../game/protocol";
@@ -41,7 +42,7 @@ export function ChatPanel({ messages, players, myPlayerId, onSendChat, onReportM
     onReportMessage(m, reason);
   };
 
-  const playerColor = (playerId: number) => players.find((p) => p.id === playerId)?.color ?? "var(--muted)";
+  const playerColor = (playerId: number) => skin(players.find((p) => p.id === playerId)?.color ?? "") || "var(--muted)";
 
   if (collapsed) {
     return (

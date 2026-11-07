@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { skin } from "../game/skin";
 import { useI18n } from "../i18n";
 import { ABILITY_INFO } from "../game/abilityInfo";
 import type { AbilitiesConfig, AbilityId, ShuffleConfig, PapaCalienteState, AceleradorState } from "../game/abilities";
@@ -179,7 +180,7 @@ export function AbilityPanel({
               ? possibleTargets.map((p) => (
                   <button
                     key={p.id}
-                    style={{ ...styles.targetButton, borderColor: p.color }}
+                    style={{ ...styles.targetButton, borderColor: skin(p.color) }}
                     onClick={() => {
                       onUsePostcognicion(postcog.target, { playerId: p.id });
                       setPostcog(null);
@@ -245,7 +246,7 @@ export function AbilityPanel({
             {possibleTargets.map((p) => (
               <button
                 key={p.id}
-                style={{ ...styles.targetButton, borderColor: p.color }}
+                style={{ ...styles.targetButton, borderColor: skin(p.color) }}
                 onClick={() => {
                   onUseAbilityExtras("papa_caliente", p.id, { papaCalienteAction: "pass" });
                   setPickingPapaPass(false);
@@ -270,7 +271,7 @@ export function AbilityPanel({
           <div style={styles.targetPickerTitle}>{t("Elige un objetivo para {ability}", { ability: t(ABILITY_LABELS[pickingTargetFor]) })}</div>
           <div style={styles.targetButtons}>
             {possibleTargets.map((p) => (
-              <button key={p.id} style={{ ...styles.targetButton, borderColor: p.color }} onClick={() => handlePickTarget(p.id)}>
+              <button key={p.id} style={{ ...styles.targetButton, borderColor: skin(p.color) }} onClick={() => handlePickTarget(p.id)}>
                 {p.name}
               </button>
             ))}

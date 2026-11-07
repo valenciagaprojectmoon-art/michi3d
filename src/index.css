@@ -39,7 +39,8 @@ body,
 }
 
 body {
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: radial-gradient(ellipse at 50% 42%, #26231c 0%, #131210 72%);
   color: var(--text);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -53,8 +54,14 @@ button:hover:not(:disabled) {
   border-color: var(--muted);
 }
 button:disabled {
-  opacity: 0.45;
+  opacity: 1;
+  background: var(--surface2) !important;
+  color: var(--muted) !important;
+  border-color: var(--line) !important;
   cursor: not-allowed;
+}
+input[type="range"] {
+  accent-color: var(--accent);
 }
 button:focus-visible,
 input:focus-visible,
