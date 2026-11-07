@@ -1,4 +1,5 @@
 import type { ChangeEvent } from "react";
+import { FRAME } from "../ui/frame";
 import { useI18n } from "../i18n";
 
 interface CubeControlsProps {
@@ -37,9 +38,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     gap: 6,
     padding: "10px 8px",
-    background: "rgba(27, 25, 21, 0.85)",
-    border: "1px solid var(--line)",
-    borderRadius: 3,
+    ...FRAME,
     fontFamily: "var(--font-body)",
   },
   text: { color: "var(--text2)", fontSize: 12 },

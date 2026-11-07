@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FRAME } from "../ui/frame";
 import { skin } from "../game/skin";
 import { useI18n } from "../i18n";
 import type { GameState, Player } from "../game/logic";
@@ -257,8 +258,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: "var(--font-display)",
     fontSize: 22,
     margin: 0,
-    fontWeight: 500,
-    letterSpacing: -0.2,
+    fontWeight: 700,
+    letterSpacing: 0.4,
   },
   roomCodeBadge: {
     pointerEvents: "none",
@@ -311,8 +312,7 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
   },
   statusBox: {
-    background: "rgba(19, 18, 16, 0.75)",
-    borderRadius: 3,
+    ...FRAME,
     padding: "10px 16px",
     alignSelf: "flex-start",
     display: "flex",

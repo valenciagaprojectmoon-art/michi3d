@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { FRAME } from "../ui/frame";
 import { skin } from "../game/skin";
 import { useI18n, legalHref } from "../i18n";
 import type { ChangeEvent, KeyboardEvent } from "react";
@@ -109,7 +110,7 @@ const styles: Record<string, React.CSSProperties> = {
     bottom: 16,
     right: 16,
     pointerEvents: "auto",
-    background: "rgba(27, 25, 21, 0.9)",
+    background: "rgba(26, 18, 12, 0.9)",
     color: "var(--text)",
     border: "1px solid var(--line2)",
     borderRadius: 3,
@@ -126,9 +127,7 @@ const styles: Record<string, React.CSSProperties> = {
     maxHeight: 360,
     display: "flex",
     flexDirection: "column",
-    background: "rgba(19, 18, 16, 0.95)",
-    border: "1px solid var(--line2)",
-    borderRadius: 12,
+    ...FRAME,
     pointerEvents: "auto",
     fontFamily: "var(--font-body)",
     overflow: "hidden",

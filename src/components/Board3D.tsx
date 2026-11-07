@@ -9,7 +9,7 @@ function Frame({ center, side }: { center: [number, number, number]; side: numbe
   const geo = useMemo(() => new EdgesGeometry(new BoxGeometry(side, side, side)), [side]);
   return (
     <lineSegments position={center} geometry={geo} raycast={() => null}>
-      <lineBasicMaterial color="#8a8473" transparent opacity={0.55} />
+      <lineBasicMaterial color="#a67c3d" transparent opacity={0.75} />
     </lineSegments>
   );
 }

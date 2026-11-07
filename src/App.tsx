@@ -366,7 +366,7 @@ const noticeStyle: React.CSSProperties = {
   bottom: 16,
   left: "50%",
   transform: "translateX(-50%)",
-  background: "rgba(19, 18, 16, 0.9)",
+  background: "rgba(15, 11, 8, 0.9)",
   color: "var(--text)",
   padding: "10px 18px",
   borderRadius: 3,

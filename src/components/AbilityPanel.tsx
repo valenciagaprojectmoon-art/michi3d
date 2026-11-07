@@ -380,7 +380,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   abilityButton: {
     pointerEvents: "auto",
-    background: "rgba(27, 25, 21, 0.9)",
+    background: "rgba(26, 18, 12, 0.9)",
     color: "var(--text)",
     border: "1px solid var(--line2)",
     borderRadius: 3,
@@ -391,7 +391,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   targetPicker: {
     pointerEvents: "auto",
-    background: "rgba(19, 18, 16, 0.95)",
+    background: "rgba(15, 11, 8, 0.95)",
     border: "1px solid var(--line2)",
     borderRadius: 12,
     padding: "14px 18px",

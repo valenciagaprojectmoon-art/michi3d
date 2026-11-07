@@ -1,26 +1,29 @@
 :root {
-  --bg: #131210;
-  --surface: #1b1915;
-  --surface2: #24211b;
-  --surface3: #3a2c24;
-  --line: #34312a;
-  --line2: #4d493d;
-  --text: #ece6d6;
-  --text2: #b9b2a1;
-  --muted: #8a8473;
-  --accent: #e2653f;
-  --accent-soft: #f2b9a4;
-  --accent-wash: rgba(226, 101, 63, 0.14);
-  --on-accent: #17110d;
-  --danger: #d9705f;
-  --danger-soft: #eab0a5;
-  --danger-line: #5c3a34;
-  --danger-wash: rgba(217, 112, 95, 0.16);
-  --warn: #d9a441;
-  --warn-line: #66532a;
+  --bg: #0b0907;
+  --surface: #17100b;
+  --surface2: #22170f;
+  --surface3: #3b2412;
+  --line: #3f2c1a;
+  --line2: #7b5a32;
+  --bronze: #b07f3f;
+  --bronze-hi: #e3b866;
+  --text: #f1e4c8;
+  --text2: #cdb990;
+  --muted: #9a865f;
+  --accent: #f0a31c;
+  --accent-soft: #ffd88a;
+  --accent-wash: rgba(240, 163, 28, 0.14);
+  --on-accent: #1c1006;
+  --danger: #d4553f;
+  --danger-soft: #f0a090;
+  --danger-line: #6a2c22;
+  --danger-wash: rgba(212, 85, 63, 0.16);
+  --warn: #e3b866;
+  --warn-line: #6b5124;
   --ok: #9bb87a;
-  --font-body: "Avenir Next", "Segoe UI", system-ui, sans-serif;
-  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --crimson: #7f1d1d;
+  --font-body: "Segoe UI", "Avenir Next", system-ui, sans-serif;
+  --font-display: "Bahnschrift", "Avenir Next Condensed", "Arial Narrow", "Roboto Condensed", "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
@@ -40,18 +43,41 @@ body,
 
 body {
   background-color: var(--bg);
-  background-image: radial-gradient(ellipse at 50% 42%, #26231c 0%, #131210 72%);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 230, 190, 0.022) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at 50% 42%, #2a1c10 0%, #0b0907 72%);
   color: var(--text);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
 }
 
+h1 {
+  font-stretch: condensed;
+}
+
+/* botones de placa: esquinas cortadas y un bisel fino, como un panel industrial */
 button {
   font-family: inherit;
-  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+  clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px);
+  box-shadow: inset 0 1px 0 rgba(255, 232, 190, 0.2), inset 0 -2px 0 rgba(0, 0, 0, 0.45);
+  transition: filter 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+/* los botones que son enlaces (subrayados) no llevan placa */
+button[style*="underline"] {
+  clip-path: none;
+  box-shadow: none;
+  text-shadow: none;
+  font-weight: inherit;
 }
 button:hover:not(:disabled) {
-  border-color: var(--muted);
+  filter: brightness(1.15);
+  border-color: var(--bronze-hi);
+}
+button:active:not(:disabled) {
+  filter: brightness(0.92);
 }
 button:disabled {
   opacity: 1;
@@ -59,11 +85,12 @@ button:disabled {
   color: var(--muted) !important;
   border-color: var(--line) !important;
   cursor: not-allowed;
+  text-shadow: none;
 }
-input[type="range"] {
-  accent-color: var(--accent);
+button:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
-button:focus-visible,
 input:focus-visible,
 select:focus-visible {
   outline: 2px solid var(--accent);
@@ -76,6 +103,9 @@ select {
 input:focus {
   border-color: var(--accent) !important;
 }
+input[type="range"] {
+  accent-color: var(--accent);
+}
 ::selection {
   background: var(--accent);
   color: var(--on-accent);
@@ -86,8 +116,8 @@ input:focus {
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(236, 230, 214, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(236, 230, 214, 0.045) 1px, transparent 1px);
+    linear-gradient(rgba(240, 163, 28, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(240, 163, 28, 0.05) 1px, transparent 1px);
   background-size: 44px 44px;
   -webkit-mask-image: radial-gradient(ellipse at 50% 45%, #000 15%, transparent 72%);
   mask-image: radial-gradient(ellipse at 50% 45%, #000 15%, transparent 72%);
@@ -96,14 +126,36 @@ input:focus {
   position: fixed;
   width: 360px;
   height: 360px;
-  opacity: 0.06;
+  opacity: 0.07;
   pointer-events: none;
 }
 .lobby-card {
   position: relative;
   z-index: 1;
   outline: 1px solid var(--line);
-  outline-offset: 6px;
+  outline-offset: 5px;
+}
+/* remaches en las cuatro esquinas y un riel rojo arriba */
+.lobby-card::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, var(--bronze-hi) 0 1.5px, transparent 2.3px) left top / 12px 12px no-repeat,
+    radial-gradient(circle, var(--bronze-hi) 0 1.5px, transparent 2.3px) right top / 12px 12px no-repeat,
+    radial-gradient(circle, var(--bronze-hi) 0 1.5px, transparent 2.3px) left bottom / 12px 12px no-repeat,
+    radial-gradient(circle, var(--bronze-hi) 0 1.5px, transparent 2.3px) right bottom / 12px 12px no-repeat;
+}
+.lobby-card::after {
+  content: "";
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: -15px;
+  height: 5px;
+  background: var(--crimson);
+  box-shadow: 0 0 0 1px #000;
 }
 @media (max-width: 900px) {
   .lobby-bigboard {
@@ -113,5 +165,8 @@ input:focus {
 @media (max-width: 440px) {
   .lobby-card {
     outline: none;
+  }
+  .lobby-card::after {
+    display: none;
   }
 }

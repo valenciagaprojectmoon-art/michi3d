@@ -1,5 +1,7 @@
-import { useEffect, useRef } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { AdditiveBlending } from "three";
+import type { BufferAttribute, Points } from "three";
 import { OrbitControls } from "@react-three/drei";
 import type { Board, Player, WinLine } from "../game/logic";
 import { Board3D } from "./Board3D";
@@ -16,6 +18,49 @@ function CameraFit({ factor }: { factor: number }) {
     }
   }, [factor, camera]);
   return null;
+}
+
+/** Brasas que suben despacio por detras del tablero. Son puro adorno: no reciben clics y se apagan con "reducir movimiento". */
+function Embers({ extent }: { extent: number }) {
+  const count = 70;
+  const ref = useRef<Points>(null);
+  const reduced = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const data = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    const speed = new Float32Array(count);
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * extent * 2.4;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * extent * 2;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * extent * 2.4;
+      speed[i] = 0.12 + Math.random() * 0.3;
+    }
+    return { pos, speed };
+  }, [extent]);
+  useFrame((state, dt) => {
+    const p = ref.current;
+    if (!p || reduced) return;
+    const attr = p.geometry.attributes.position as BufferAttribute;
+    const arr = attr.array as Float32Array;
+    const t = state.clock.elapsedTime;
+    for (let i = 0; i < count; i++) {
+      arr[i * 3 + 1] += data.speed[i] * dt;
+      arr[i * 3] += Math.sin(t * 0.6 + i) * 0.06 * dt;
+      if (arr[i * 3 + 1] > extent) {
+        arr[i * 3 + 1] = -extent;
+        arr[i * 3] = (Math.random() - 0.5) * extent * 2.4;
+      }
+    }
+    attr.needsUpdate = true;
+  });
+  if (reduced) return null;
+  return (
+    <points ref={ref} raycast={() => null}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[data.pos, 3]} />
+      </bufferGeometry>
+      <pointsMaterial color="#f0a31c" size={0.11} sizeAttenuation transparent opacity={0.85} depthWrite={false} blending={AdditiveBlending} />
+    </points>
+  );
 }
 
 interface GameSceneProps {
@@ -42,9 +87,10 @@ export function GameScene({ board, size, dimensions, spread, lastMoveIndex, play
   return (
     <Canvas key={`${dimensions}-${size}`} camera={{ position: [5 * scale * factor, 4 * scale * factor, 6 * scale * factor], fov: 45 }}>
       <CameraFit factor={factor} />
-      <hemisphereLight args={["#f3e9d2", "#2a241c", 0.9]} />
-      <directionalLight position={[5, 8, 5]} intensity={0.8} color="#fff1d6" />
-      <directionalLight position={[-5, -3, -5]} intensity={0.2} color="#9fb4d6" />
+      <Embers extent={scale * 3.2 * factor} />
+      <hemisphereLight args={["#ffeccc", "#55442f", 1.25]} />
+      <directionalLight position={[5, 8, 5]} intensity={0.9} color="#fff0d8" />
+      <directionalLight position={[-5, -3, -5]} intensity={0.25} color="#a0b4d0" />
 
       <Board3D
         board={board}

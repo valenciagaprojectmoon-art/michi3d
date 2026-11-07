@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FRAME } from "../ui/frame";
 import { Backdrop, Features, Rule, Tesseract } from "./LobbyDecor";
 import { useI18n, legalHref } from "../i18n";
 import { ABILITY_INFO } from "../game/abilityInfo";
@@ -839,7 +840,7 @@ const styles: Record<string, React.CSSProperties> = {
     // llegar. Con "flex-start" + margin auto en la tarjeta: centrada si cabe, con scroll normal si no.
     alignItems: "flex-start",
     justifyContent: "center",
-    background: "rgba(14, 13, 11, 0.85)",
+    background: "rgba(10, 8, 6, 0.85)",
     fontFamily: "var(--font-body)",
     zIndex: 10,
     overflowY: "auto",
@@ -851,9 +852,7 @@ const styles: Record<string, React.CSSProperties> = {
     margin: "auto",
     maxWidth: "100%",
     flexShrink: 0, // que no se aplaste para caber: que crezca y se pueda hacer scroll
-    background: "var(--surface)",
-    border: "1px solid var(--line)",
-    borderRadius: 3,
+    ...FRAME,
     padding: "32px 28px",
     width: 380,
     display: "flex",
@@ -863,9 +862,9 @@ const styles: Record<string, React.CSSProperties> = {
   title: {
     color: "var(--text)",
     fontFamily: "var(--font-display)",
-    fontWeight: 500,
-    letterSpacing: -0.5,
-    fontSize: 26,
+    fontWeight: 700,
+    letterSpacing: 0.5,
+    fontSize: 28,
     margin: 0,
     textAlign: "center",
   },
