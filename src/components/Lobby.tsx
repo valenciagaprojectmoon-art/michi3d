@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { FRAME } from "../ui/frame";
-import { Backdrop, Features, Rule, Tesseract } from "./LobbyDecor";
+import { Backdrop, Rule, Tesseract } from "./LobbyDecor";
 import { useI18n, legalHref } from "../i18n";
 import { ABILITY_INFO } from "../game/abilityInfo";
 import { PRESET_ABILITIES, randomAbilities } from "../game/presets";
@@ -194,7 +194,6 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
         <Tesseract />
         <h1 style={styles.title}>michi súper-bidimensional</h1>
         <p style={styles.subtitle}>{t("Tres en raya en 3D y 4D")}</p>
-        <Features items={[t("Hasta 6x6x6x6"), t("10 habilidades"), t("Salas online")]} />
         <Rule />
 
         <AuthBox auth={auth.state} onLogin={auth.login} onLogout={auth.logout} onRetry={auth.retry} />

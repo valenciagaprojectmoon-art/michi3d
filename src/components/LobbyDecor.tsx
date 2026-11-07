@@ -70,28 +70,6 @@ export function Tesseract() {
   );
 }
 
-export function Features({ items }: { items: string[] }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "center", margin: "-4px 0" }}>
-      {items.map((txt) => (
-        <span
-          key={txt}
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 10,
-            letterSpacing: 0.4,
-            whiteSpace: "nowrap",
-            color: "var(--muted)",
-            padding: "2px 10px",
-          }}
-        >
-          {txt}
-        </span>
-      ))}
-    </div>
-  );
-}
-
 /** Linea fina con un mini tablero en el centro (una x y una o ya puestas). */
 export function Rule() {
   const line = { flex: 1, height: 1, background: "var(--line)" } as const;

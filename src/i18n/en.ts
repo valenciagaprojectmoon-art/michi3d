@@ -10,9 +10,6 @@
 export const EN: Record<string, string> = {
   // Lobby
   "Tres en raya en 3D y 4D": "Tic-tac-toe in 3D and 4D",
-  "Hasta 6x6x6x6": "Up to 6x6x6x6",
-  "10 habilidades": "10 abilities",
-  "Salas online": "Online rooms",
   "Tu nombre": "Your name",
   "Ej: Ana": "e.g. Ana",
   "Tengo al menos 14 años y acepto los {terms} y la {privacy}, incluido el registro del chat de la sala para moderación. (Solo para jugar online.)":

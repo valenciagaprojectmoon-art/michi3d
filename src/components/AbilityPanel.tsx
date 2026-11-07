@@ -6,6 +6,7 @@ import type { AbilitiesConfig, AbilityId, ShuffleConfig, PapaCalienteState, Acel
 import type { AbilityExtras } from "../game/useMultiplayer";
 import { shouldConsumeTurn } from "../game/abilities";
 import type { Player } from "../game/logic";
+import { AbilityBurst } from "./AbilityBurst";
 
 interface AbilityPanelProps {
   myPlayerId: number;
@@ -51,7 +52,7 @@ const ABILITY_LABELS: Record<AbilityId, string> = {
   malversion_fondos: "Malversión de Fondos",
 };
 
-export function AbilityPanel({
+function AbilityPanelInner({
   myPlayerId,
   isMyTurn,
   assignedAbilities,
@@ -303,7 +304,7 @@ export function AbilityPanel({
                 : t("Sin usos gratis, la próxima habilidad te cuesta el turno.")}
             </div>
           )}
-          {displayedAbilities.map((ability) => {
+          {displayedAbilities.map((ability, idx) => {
             const willConsume = shuffle
               ? shouldConsumeTurn({ shuffle, noConsumeUsesRemaining }, ability)
               : true;
@@ -321,7 +322,8 @@ export function AbilityPanel({
             return (
               <button
                 key={ability}
-                style={{ ...styles.abilityButton, opacity: isMyTurn && !papaBlocked && !acelBlocked ? 1 : 0.5 }}
+                className={"ability-btn" + (ability === "papa_caliente" && papaCaliente.holderId === myPlayerId ? " ability-hot" : "")}
+                style={{ ...styles.abilityButton, opacity: isMyTurn && !papaBlocked && !acelBlocked ? 1 : 0.5, animationDelay: `${idx * 70}ms` }}
                 disabled={!isMyTurn || papaBlocked || acelBlocked}
                 onClick={() => handleClick(ability)}
                 title={t(ABILITY_INFO[ability]) + "\n\n" + (!isMyTurn
@@ -390,6 +392,7 @@ const styles: Record<string, React.CSSProperties> = {
     whiteSpace: "nowrap",
   },
   targetPicker: {
+    animation: "ab-pop 0.22s ease-out both",
     pointerEvents: "auto",
     background: "rgba(15, 11, 8, 0.95)",
     border: "1px solid var(--line2)",
@@ -429,3 +432,29 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
   },
 };
+
+/** Envuelve el panel para lanzar la animacion de uso cada vez que se usa una habilidad de verdad. */
+export function AbilityPanel(props: AbilityPanelProps) {
+  const [burst, setBurst] = useState<{ key: number; ability: AbilityId } | null>(null);
+  const fire = (ability: AbilityId) => setBurst((b) => ({ key: (b?.key ?? 0) + 1, ability }));
+  return (
+    <>
+      {burst && <AbilityBurst key={burst.key} ability={burst.ability} label={ABILITY_LABELS[burst.ability]} onDone={() => setBurst(null)} />}
+      <AbilityPanelInner
+        {...props}
+        onUseAbility={(ability, targetPlayerId) => {
+          fire(ability);
+          props.onUseAbility(ability, targetPlayerId);
+        }}
+        onUsePostcognicion={(targetPlayerId, secondary) => {
+          fire("postcognicion");
+          props.onUsePostcognicion(targetPlayerId, secondary);
+        }}
+        onUseAbilityExtras={(ability, targetPlayerId, extras) => {
+          fire(ability);
+          props.onUseAbilityExtras(ability, targetPlayerId, extras);
+        }}
+      />
+    </>
+  );
+}
