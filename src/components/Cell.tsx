@@ -17,6 +17,7 @@ interface CellProps {
   showEdges: boolean;
   canPlay: boolean; // false si la partida terminó o la casilla está ocupada
   onClick: () => void;
+  onHover?: (hovering: boolean) => void; // para marcar la misma casilla en las otras capas del 4D
 }
 
 const CELL_SIZE = 0.85; // deja un pequeño hueco (0.15) entre casillas para que se vea la rejilla
@@ -95,7 +96,7 @@ function CellFx({ target, mat, hasMark, isLast, isWin }: FxProps) {
  * - Ocupada: cubo sólido en el color del jugador, con su letra inicial encima.
  * - Ganadora: late con emissive para resaltarla.
  */
-export function Cell({ position, mark, players, isWinningCell, isLastMove, showEdges, canPlay, onClick }: CellProps) {
+export function Cell({ position, mark, players, isWinningCell, isLastMove, showEdges, canPlay, onClick, onHover }: CellProps) {
   const [hovered, setHovered] = useState(false);
   const body = useRef<Group>(null);
   const matRef = useRef<MeshStandardMaterial>(null);
@@ -116,11 +117,15 @@ export function Cell({ position, mark, players, isWinningCell, isLastMove, showE
           onClick={handleClick}
           onPointerOver={(e: ThreeEvent<PointerEvent>) => {
             e.stopPropagation();
-            if (canPlay) setHovered(true);
+            if (canPlay) {
+              setHovered(true);
+              onHover?.(true);
+            }
           }}
           onPointerOut={(e: ThreeEvent<PointerEvent>) => {
             e.stopPropagation();
             setHovered(false);
+            onHover?.(false);
           }}
         >
           <primitive object={CELL_BOX} attach="geometry" />
