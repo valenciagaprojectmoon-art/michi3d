@@ -211,6 +211,12 @@ export const EN: Record<string, string> = {
   "Hay demasiadas conexiones desde tu red ahora mismo. Prueba de nuevo en un rato.":
     "There are too many connections from your network right now. Try again in a bit.",
   "Se envió un mensaje demasiado grande y se cerró la conexión.": "A message that was too large was sent and the connection was closed.",
+  "Te sacamos de la sala por pasar demasiado tiempo fuera de la ventana. Puedes volver a entrar con el código.": "You were removed from the room for spending too long outside the window. You can come back in with the code.",
+  "Sonido activado": "Sound on",
+  "Sonido apagado": "Sound off",
+  "Categoría": "Category",
+  "Clásico": "Classic",
+  "5D de {size} por lado: {cells} casillas. Gana quien junte {line} en línea recta.": "5D with {size} per side: {cells} cells. Whoever gets {line} in a straight line wins.",
   "¡Te tiraron un Globo de Pintura! Tu pantalla se ve rara este turno.": "You got hit by a Paint Balloon! Your screen looks weird this turn.",
   "Te tocó un efecto.": "You got hit by an effect.",
   "Idioma": "Language",

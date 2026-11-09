@@ -54,6 +54,7 @@ interface UseMultiplayerResult {
   reportMessage: (message: ChatMessage, reason: string) => void;
   chatMessages: ChatMessage[]; // historial completo de chat de la sala actual
   lastNotice: string | null; // avisos efímeros: "X se desconectó", etc.
+  lastAbility: { key: number; ability: AbilityId; playerName: string } | null; // ultima habilidad usada en la sala, por quien sea
   lastEffects: ActiveEffect[] | null; // efectos que te acaban de aplicar a TI (ej. pantalla desorientada)
 }
 
@@ -65,6 +66,7 @@ export function useMultiplayer(): UseMultiplayerResult {
   const tr = (key: string, params?: Record<string, string | number>) => translate(langRef.current, key, params);
   const [phase, setPhase] = useState<ConnectionPhase>({ kind: "lobby" });
   const [lastNotice, setLastNotice] = useState<string | null>(null);
+  const [lastAbility, setLastAbility] = useState<{ key: number; ability: AbilityId; playerName: string } | null>(null);
   const [lastEffects, setLastEffects] = useState<ActiveEffect[] | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
@@ -106,6 +108,9 @@ export function useMultiplayer(): UseMultiplayerResult {
           setPhase((prev) =>
             prev.kind === "in_room" ? { ...prev, state: msg.state } : prev
           );
+          break;
+        case "ability_used":
+          setLastAbility((prev) => ({ key: (prev?.key ?? 0) + 1, ability: msg.ability, playerName: msg.playerName }));
           break;
         case "player_disconnected":
           setLastNotice(tr("{name} se desconectó.", { name: msg.playerName }));
@@ -154,9 +159,13 @@ export function useMultiplayer(): UseMultiplayerResult {
         1008: tr("Te sacamos por mandar demasiadas peticiones. Espera un par de minutos y vuelve a entrar."),
         1013: tr("Hay demasiadas conexiones desde tu red ahora mismo. Prueba de nuevo en un rato."),
         1009: tr("Se envió un mensaje demasiado grande y se cerró la conexión."),
+        4001: tr("Te sacamos de la sala por pasar demasiado tiempo fuera de la ventana. Puedes volver a entrar con el código."),
       };
       const message = reasons[event.code];
-      if (message) setPhase({ kind: "error", message });
+      if (message) {
+        if (event.code === 4001) clearSession(); // te sacaron: no volver a entrar solo al refrescar
+        setPhase({ kind: "error", message });
+      }
     };
   }, []);
 
@@ -245,6 +254,15 @@ export function useMultiplayer(): UseMultiplayerResult {
     setPhase({ kind: "lobby" });
   }, [send]);
 
+  // Avisa al servidor de si la pestaña está a la vista: quien pasa demasiado rato fuera de la ventana se expulsa de la sala.
+  useEffect(() => {
+    if (phase.kind !== "in_room") return;
+    const report = () => send({ type: "presence", visible: document.visibilityState !== "hidden" });
+    report();
+    document.addEventListener("visibilitychange", report);
+    return () => document.removeEventListener("visibilitychange", report);
+  }, [phase.kind, send]);
+
   // Limpieza: cerrar el socket si el componente se desmonta con una conexión abierta.
   useEffect(() => {
     return () => {
@@ -267,6 +285,7 @@ export function useMultiplayer(): UseMultiplayerResult {
     reportMessage,
     chatMessages,
     lastNotice,
+    lastAbility,
     lastEffects,
   };
 }

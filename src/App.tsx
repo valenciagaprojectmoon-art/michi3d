@@ -16,6 +16,10 @@ import { ChatPanel } from "./components/ChatPanel";
 import { CubeControls } from "./components/CubeControls";
 import { defaultSpread } from "./game/cubeLayout";
 import { useScreenShake } from "./hooks/useScreenShake";
+import { useGameEffects } from "./hooks/useGameEffects";
+import { AbilityBurst } from "./components/AbilityBurst";
+import { WinBanner } from "./components/WinBanner";
+import { SoundToggle } from "./components/SoundToggle";
 
 interface CreateRoomOptions {
   timerConfig: TimerConfig;
@@ -182,7 +186,7 @@ function AppInRoom({
   multiplayer: ReturnType<typeof useMultiplayer>;
   onExit: () => void;
 }) {
-  const { playMove, resetGame, leaveRoom, endGame, setLocked, useAbility, sendChat, rematch, reportMessage, chatMessages, lastNotice, lastEffects } =
+  const { playMove, resetGame, leaveRoom, endGame, setLocked, useAbility, sendChat, rematch, reportMessage, chatMessages, lastNotice, lastAbility, lastEffects } =
     multiplayer;
   const { state, playerId, roomCode } = phase;
   const { t } = useI18n();
@@ -193,6 +197,10 @@ function AppInRoom({
   const [pickingCellPrimary, setPickingCellPrimary] = useState<number | undefined>(undefined); // Postcognición: jugador copiado mientras se elige la casilla
   const [distortionForShake, setDistortionForShake] = useState<number | null>(null);
   const shakeOffset = useScreenShake(distortionForShake);
+  // una habilidad usada antes de entrar a esta sala no debe animarse ni sonar al montar
+  const initialAbilityKey = useRef(lastAbility?.key ?? null);
+  const freshAbility = lastAbility && lastAbility.key !== initialAbilityKey.current ? lastAbility : null;
+  useGameEffects(state, playerId, freshAbility ? freshAbility.key : null);
 
   const winLine = state.game.status.kind === "win" ? state.game.status.line : null;
   const gameActive = state.game.status.kind === "playing";
@@ -332,6 +340,9 @@ function AppInRoom({
         />
       )}
       {lastNotice && <div style={noticeStyle}>{lastNotice}</div>}
+      {freshAbility && <AbilityBurst key={freshAbility.key} ability={freshAbility.ability} who={freshAbility.playerName} />}
+      <WinBanner status={state.game.status} players={state.game.players} />
+      <SoundToggle />
       {lastEffects && lastEffects.length > 0 && (
         <div style={effectNoticeStyle}>
           {lastEffects.map((e, i) => (

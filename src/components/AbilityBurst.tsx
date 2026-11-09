@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { useI18n } from "../i18n";
 import type { AbilityId } from "../game/abilities";
+import { ABILITY_LABELS } from "./AbilityPanel";
 
 /** Color de cada habilidad en la animacion de uso. */
 const COLORS: Record<AbilityId, string> = {
@@ -20,17 +21,17 @@ const COLORS: Record<AbilityId, string> = {
 const SPARKS = Array.from({ length: 12 }, (_, i) => i * 30);
 
 /**
- * Animacion que aparece al usar una habilidad: dos ondas que se expanden, doce chispas que salen
- * disparadas y el nombre de la habilidad que sube y se apaga. Dura poco mas de un segundo.
+ * Animacion que ven TODOS los jugadores cuando alguien usa una habilidad: dos ondas que se expanden, doce chispas,
+ * el nombre de la habilidad que sube y se apaga, y debajo quien la uso. Dura poco mas de un segundo y se quita sola.
  */
-export function AbilityBurst({ ability, label, onDone }: { ability: AbilityId; label: string; onDone: () => void }) {
+export function AbilityBurst({ ability, who }: { ability: AbilityId; who?: string }) {
   const { t } = useI18n();
-  const done = useRef(onDone);
-  done.current = onDone;
+  const [on, setOn] = useState(true);
   useEffect(() => {
-    const id = window.setTimeout(() => done.current(), 1300);
+    const id = window.setTimeout(() => setOn(false), 1300);
     return () => window.clearTimeout(id);
   }, []);
+  if (!on) return null;
   return (
     <div className="ab-burst" aria-hidden="true" style={{ "--c": COLORS[ability] } as CSSProperties}>
       <div className="ab-ring" />
@@ -38,7 +39,8 @@ export function AbilityBurst({ ability, label, onDone }: { ability: AbilityId; l
       {SPARKS.map((a) => (
         <div key={a} className="ab-spark" style={{ "--a": `${a}deg` } as CSSProperties} />
       ))}
-      <div className="ab-name">{t(label)}</div>
+      <div className="ab-name">{t(ABILITY_LABELS[ability])}</div>
+      {who && <div className="ab-who">{who}</div>}
     </div>
   );
 }

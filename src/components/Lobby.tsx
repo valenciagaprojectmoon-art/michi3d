@@ -11,7 +11,7 @@ import { fetchLeaderboard } from "../game/leaderboard";
 import type { LeaderboardRow } from "../game/leaderboard";
 import type { ChangeEvent } from "react";
 import type { TimerConfig, TimeoutAction, LifeConfig, BoardConfig } from "../game/logic";
-import { normalizeBoardConfig, maxBoardSize, fractalCellsPerLevel, fractalDimension, MIN_BOARD_SIZE, MIN_LINE_LENGTH } from "../game/logic";
+import { normalizeBoardConfig, maxBoardSize, fractalCellsPerLevel, fractalDimension, MIN_BOARD_SIZE, MIN_LINE_LENGTH, MIN_BOARD_SIZE_5D, MIN_LINE_LENGTH_5D } from "../game/logic";
 import type { AbilitiesConfig, AbilityId, ShuffleConfig } from "../game/abilities";
 
 interface LobbyProps {
@@ -98,7 +98,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
   const [goyslopCuracion, setGoyslopCuracion] = useState(4);
   const [goyslopPerdidaMaxima, setGoyslopPerdidaMaxima] = useState(2);
   const [globoDivergencia, setGloboDivergencia] = useState(5);
-  const [dimensions, setDimensions] = useState<3 | 4>(3); // 3D (cubo) o 4D (hipercubo)
+  const [dimensions, setDimensions] = useState<3 | 4 | 5>(3); // 3D (cubo), 4D (hipercubo) o la categoría aparte de 5D
   const [fractalLevel, setFractalLevel] = useState<0 | 1 | 2>(0); // 0 = tablero normal, 1 o 2 = esponja fractal con huecos
   const [boardSize, setBoardSize] = useState(3); // casillas por lado (por defecto 3)
   const [lineLength, setLineLength] = useState(3); // dimensión de línea (por defecto 3)
@@ -275,6 +275,34 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
           <div style={styles.buttonColumn}>
             <div style={styles.sectionTitle}>{t("Tablero")}</div>
             <div style={styles.label}>
+              {t("Categoría")}
+              <div style={styles.presetRow}>
+                {(["classic", "5d"] as const).map((cat) => {
+                  const on = (cat === "5d") === (dimensions === 5);
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      style={{ ...styles.presetButton, ...(on ? styles.presetButtonOn : {}) }}
+                      aria-pressed={on}
+                      onClick={() => {
+                        if (on) return;
+                        // Cada categoría arranca con sus propias reglas: el 5D, con el fractal puesto y línea de 3.
+                        const next = cat === "5d" ? normalizeBoardConfig({ size: 3, lineLength: 3, dimensions: 5, fractalLevel: 1 }) : normalizeBoardConfig({ size: 3, lineLength: 3, dimensions: 3, fractalLevel: 0 });
+                        setDimensions(next.dimensions);
+                        setBoardSize(next.size);
+                        setLineLength(next.lineLength);
+                        setFractalLevel(next.fractalLevel);
+                      }}
+                    >
+                      {cat === "5d" ? "5D" : t("Clásico")}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {dimensions !== 5 && (
+            <div style={styles.label}>
               {t("Dimensiones")}
               <div style={styles.presetRow}>
                 {([3, 4] as const).map((d) => (
@@ -297,11 +325,12 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                 ))}
               </div>
             </div>
+            )}
             <div style={styles.label}>
               {t("Fractal")}
               <div style={styles.presetRow}>
                 {([0, 1, 2] as const).map((level) => {
-                  const unavailable = level === 2 && dimensions === 4; // 5184 casillas: demasiadas para dibujarlas
+                  const unavailable = level === 2 && dimensions >= 4; // 5184 casillas en 4D y 59049 en 5D: demasiadas para dibujarlas
                   return (
                     <button
                       key={level}
@@ -327,13 +356,13 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
               <input
                 style={styles.input}
                 type="number"
-                min={MIN_BOARD_SIZE}
+                min={dimensions === 5 ? MIN_BOARD_SIZE_5D : MIN_BOARD_SIZE}
                 max={maxBoardSize(dimensions)}
                 disabled={fractalLevel > 0}
                 value={boardSize}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => {
                   // Al cambiar el cubo, la línea se recorta si ya no cabe (nunca puede ser mayor que el cubo).
-                  const next = normalizeBoardConfig({ size: parseInt(e.target.value, 10), lineLength });
+                  const next = normalizeBoardConfig({ size: parseInt(e.target.value, 10), lineLength, dimensions });
                   setBoardSize(next.size);
                   setLineLength(next.lineLength);
                 }}
@@ -344,7 +373,7 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
               <input
                 style={styles.input}
                 type="number"
-                min={MIN_LINE_LENGTH}
+                min={dimensions === 5 ? MIN_LINE_LENGTH_5D : MIN_LINE_LENGTH}
                 max={boardSize}
                 value={lineLength}
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -360,6 +389,8 @@ export function Lobby({ onCreateRoom, onJoinRoom, onPlayLocal, errorMessage, con
                     grid: Array(dimensions).fill(boardSize).join("×"),
                     dim: fractalDimension(dimensions).toFixed(2),
                   })
+                : dimensions === 5
+                ? t("5D de {size} por lado: {cells} casillas. Gana quien junte {line} en línea recta.", { size: boardSize, cells: boardSize ** 5, line: lineLength })
                 : dimensions === 4
                 ? t("Hipercubo de {size}×{size}×{size}×{size}: {cells} casillas, repartidas en {size} cubos. Gana quien junte {line} en línea recta, también de un cubo a otro.", {
                     size: boardSize,

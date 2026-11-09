@@ -10,6 +10,18 @@ import { Cell } from "./Cell";
 const ECHO_EDGES = new EdgesGeometry(new BoxGeometry(0.97, 0.97, 0.97));
 
 /** Color de cada capa de la cuarta dimension: de ambar (w 1) a azul verdoso (la ultima), para distinguirlas de un vistazo. */
+function shade(hex: string, f: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = (shift: number) => Math.round(((n >> shift) & 255) * f).toString(16).padStart(2, "0");
+  return "#" + ch(16) + ch(8) + ch(0);
+}
+
+/** Color de un cubo: w manda el matiz (de ámbar a azul verdoso) y, en 5D, v lo oscurece según la fila. */
+function sliceColor(w: number, v: number, size: number, is5D: boolean): string {
+  const base = layerColor(w, size);
+  return is5D ? shade(base, 1 - 0.4 * (size <= 1 ? 0 : v / (size - 1))) : base;
+}
+
 function layerColor(w: number, size: number): string {
   const t = size <= 1 ? 0 : w / (size - 1);
   const a = [0xd9, 0xa4, 0x41];
@@ -30,20 +42,26 @@ function Frame({ center, side, color }: { center: [number, number, number]; side
  * En 4D, al pasar el raton por una casilla se marca "el mismo sitio" en todas las demas capas (w) y se unen con
  * lineas: asi se ve que la cuarta dimension es otro eje mas, y que una linea puede saltar de un cubo a otro.
  */
-function Echoes({ board, size, factor }: { board: Board; size: number; factor: number }) {
+function Echoes({ board, size, dimensions, factor }: { board: Board; size: number; dimensions: number; factor: number }) {
   const hover = useSyncExternalStore(hoverStore.subscribe, hoverStore.get);
   if (hover === null) return null;
   const c = indexToCoord(hover, size);
-  const origin = cellPosition(c, size, 4, factor);
+  const origin = cellPosition(c, size, dimensions, factor);
+  const is5D = dimensions === 5;
+  const n3 = size * size * size;
+  const n4 = n3 * size;
+  // Los ecos: el mismo sitio en los otros cubos de su fila (otros w) y, en 5D, también de su columna (otros v).
+  const targets: { w: number; v: number }[] = [];
+  for (let w = 0; w < size; w++) if (w !== c.w) targets.push({ w, v: c.v ?? 0 });
+  if (is5D) for (let v = 0; v < size; v++) if (v !== (c.v ?? 0)) targets.push({ w: c.w, v });
   const echoes = [];
-  for (let w = 0; w < size; w++) {
-    if (w === c.w) continue;
-    const idx = hover % (size * size * size) + w * size * size * size;
+  for (const { w, v } of targets) {
+    const idx = (hover % n3) + w * n3 + v * n4;
     if (board[idx] === HOLE) continue;
-    const pos = cellPosition({ ...c, w }, size, 4, factor);
-    const color = layerColor(w, size);
+    const pos = cellPosition({ ...c, w, v }, size, dimensions, factor);
+    const color = sliceColor(w, v, size, is5D);
     echoes.push(
-      <group key={w}>
+      <group key={`${w}-${v}`}>
         <lineSegments position={pos} raycast={() => null}>
           <primitive object={ECHO_EDGES} attach="geometry" />
           <lineBasicMaterial color={color} transparent opacity={0.95} />
@@ -103,29 +121,32 @@ export function Board3D({ board, size, dimensions, spread, players, winLine, las
   }
 
   const side = SPACING * size * factor;
-  const is4D = dimensions === 4;
+  const hasW = dimensions >= 4; // 4D y 5D se dibujan como varios cubos
+  const is5D = dimensions === 5;
   const winPoints = winLine ? winLine.map((i) => cellPosition(indexToCoord(i, size), size, dimensions, factor)) : null;
 
   return (
     <group>
       {cells}
       {/* Marco de cada cubo: ayuda a percibir el cubo como un todo. En 4D cada capa (w) lleva su color y su etiqueta */}
-      {slicePositions(size, dimensions, factor).map((center, w) => {
-        const color = is4D ? layerColor(w, size) : "#a67c3d";
+      {slicePositions(size, dimensions, factor).map((center, k) => {
+        const w = hasW ? k % size : 0;
+        const v = is5D ? Math.floor(k / size) : 0;
+        const color = hasW ? sliceColor(w, v, size, is5D) : "#a67c3d";
         return (
-          <group key={w}>
+          <group key={k}>
             <Frame center={center as [number, number, number]} side={side} color={color} />
-            {is4D && (
+            {hasW && (
               <Billboard position={[center[0], center[1] + side / 2 + 0.55, center[2]]}>
                 <Text fontSize={0.42} color={color} anchorX="center" anchorY="middle">
-                  {`w ${w + 1}`}
+                  {is5D ? `w ${w + 1} v ${v + 1}` : `w ${w + 1}`}
                 </Text>
               </Billboard>
             )}
           </group>
         );
       })}
-      {is4D && <Echoes board={board} size={size} factor={factor} />}
+      {hasW && <Echoes board={board} size={size} dimensions={dimensions} factor={factor} />}
       {/* La linea ganadora se une con un trazo brillante, incluso cuando salta de un cubo a otro */}
       {winPoints && winPoints.length > 1 && <Line points={winPoints} color="#f0a31c" lineWidth={3} raycast={() => null} />}
     </group>

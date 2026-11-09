@@ -6,7 +6,7 @@ import type { AbilitiesConfig, AbilityId, ShuffleConfig, PapaCalienteState, Acel
 import type { AbilityExtras } from "../game/useMultiplayer";
 import { shouldConsumeTurn } from "../game/abilities";
 import type { Player } from "../game/logic";
-import { AbilityBurst } from "./AbilityBurst";
+import { pickCopiedAbility } from "../game/abilities";
 
 interface AbilityPanelProps {
   myPlayerId: number;
@@ -39,7 +39,7 @@ const PLAYER_TARGETED_ABILITIES: AbilityId[] = ["globo_pintura", "postcognicion"
 const CELL_TARGETED_ABILITIES: AbilityId[] = ["malversion_fondos"];
 
 /** Nombres legibles para mostrar en botones, ya que los ids internos usan snake_case. */
-const ABILITY_LABELS: Record<AbilityId, string> = {
+export const ABILITY_LABELS: Record<AbilityId, string> = {
   papa_caliente: "Papa Caliente",
   chicharron: "Chicharrón",
   postcognicion: "Postcognición",
@@ -52,7 +52,7 @@ const ABILITY_LABELS: Record<AbilityId, string> = {
   malversion_fondos: "Malversión de Fondos",
 };
 
-function AbilityPanelInner({
+export function AbilityPanel({
   myPlayerId,
   isMyTurn,
   assignedAbilities,
@@ -127,7 +127,7 @@ function AbilityPanelInner({
     if (pickingTargetFor === "postcognicion") {
       // El servidor copia la PRIMERA habilidad de la mano del objetivo (determinista),
       // así que el cliente sabe de antemano qué segundo objetivo hará falta.
-      const copied = allAssigned[targetId]?.[0];
+      const copied = pickCopiedAbility(allAssigned[targetId] ?? []) ?? undefined;
       setPickingTargetFor(null);
       if (copied === "globo_pintura" || (copied === "papa_caliente" && papaCaliente.holderId === myPlayerId)) {
         setPostcog({ target: targetId, stage: "player", copied });
@@ -432,29 +432,3 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
   },
 };
-
-/** Envuelve el panel para lanzar la animacion de uso cada vez que se usa una habilidad de verdad. */
-export function AbilityPanel(props: AbilityPanelProps) {
-  const [burst, setBurst] = useState<{ key: number; ability: AbilityId } | null>(null);
-  const fire = (ability: AbilityId) => setBurst((b) => ({ key: (b?.key ?? 0) + 1, ability }));
-  return (
-    <>
-      {burst && <AbilityBurst key={burst.key} ability={burst.ability} label={ABILITY_LABELS[burst.ability]} onDone={() => setBurst(null)} />}
-      <AbilityPanelInner
-        {...props}
-        onUseAbility={(ability, targetPlayerId) => {
-          fire(ability);
-          props.onUseAbility(ability, targetPlayerId);
-        }}
-        onUsePostcognicion={(targetPlayerId, secondary) => {
-          fire("postcognicion");
-          props.onUsePostcognicion(targetPlayerId, secondary);
-        }}
-        onUseAbilityExtras={(ability, targetPlayerId, extras) => {
-          fire(ability);
-          props.onUseAbilityExtras(ability, targetPlayerId, extras);
-        }}
-      />
-    </>
-  );
-}

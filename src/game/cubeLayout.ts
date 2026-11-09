@@ -35,25 +35,29 @@ export function sliceExtent(size: number, factor: number): number {
  * coordenada (w) es un cubo aparte; los cubos se reparten en una cuadrícula centrada (2 cubos en fila, 3 en
  * 2x2 con un hueco, 4 en 2x2) y las líneas ganadoras pueden cruzar de un cubo a otro.
  */
-export function cellPosition(c: { x: number; y: number; z: number; w: number }, size: number, dimensions: number, factor: number = 1): [number, number, number] {
+export function cellPosition(c: { x: number; y: number; z: number; w: number; v?: number }, size: number, dimensions: number, factor: number = 1): [number, number, number] {
   const x = gridToWorld(c.x, size, factor), y = gridToWorld(c.y, size, factor), z = gridToWorld(c.z, size, factor);
-  if (dimensions !== 4) return [x, y, z];
-  const { cols, rows } = sliceGrid(size);
+  if (dimensions < 4) return [x, y, z];
+  // En 5D los cubos forman una tabla de size×size: w en las columnas y v en las filas. En 4D, la cuadrícula compacta de siempre.
+  const { cols, rows } = dimensions === 5 ? { cols: size, rows: size } : sliceGrid(size);
   const pitch = sliceExtent(size, factor) + SLICE_GAP;
-  const col = c.w % cols, row = Math.floor(c.w / cols);
+  const col = c.w % cols, row = dimensions === 5 ? (c.v ?? 0) : Math.floor(c.w / cols);
   return [x + (col - (cols - 1) / 2) * pitch, y - (row - (rows - 1) / 2) * pitch, z];
 }
 
 /** Centro de cada rodaja (para dibujar su marco y su etiqueta). En 3D solo hay una, en el origen. */
 export function slicePositions(size: number, dimensions: number, factor: number = 1): [number, number, number][] {
-  if (dimensions !== 4) return [[0, 0, 0]];
-  return Array.from({ length: size }, (_, w) => cellPosition({ x: (size - 1) / 2, y: (size - 1) / 2, z: (size - 1) / 2, w }, size, 4, factor));
+  if (dimensions < 4) return [[0, 0, 0]];
+  const count = dimensions === 5 ? size * size : size; // el cubo k es w = k % size, v = floor(k / size)
+  return Array.from({ length: count }, (_, k) =>
+    cellPosition({ x: (size - 1) / 2, y: (size - 1) / 2, z: (size - 1) / 2, w: k % size, v: Math.floor(k / size) }, size, dimensions, factor)
+  );
 }
 
 /** Tamaño aproximado de toda la escena en "casillas", para alejar la cámara lo justo. */
 export function sceneExtent(size: number, dimensions: number): number {
-  if (dimensions !== 4) return size;
-  const { cols, rows } = sliceGrid(size);
+  if (dimensions < 4) return size;
+  const { cols, rows } = dimensions === 5 ? { cols: size, rows: size } : sliceGrid(size);
   return Math.max(cols, rows) * (size + SLICE_GAP / SPACING);
 }
 
